@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T09:09:35Z",
+  "generatedAt": "2026-11-14T12:50:52Z",
   "mode": "real",
   "files": [
     {
@@ -430,8 +430,8 @@
     },
     {
       "path": "meta.json",
-      "bytes": 3380,
-      "sha256": "0ae9f766360531e63bd77992029b0344de27f5e2f5a8d543fd0bb232eb008a83",
+      "bytes": 3361,
+      "sha256": "1e1bc2448905fc36ad6e10397991128a940c2b7632842279b1b140cc8f6c7a38",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"

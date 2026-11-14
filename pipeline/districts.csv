@@ -4,18 +4,18 @@
 # district_name must match the geoBoundaries ADM2 shapeName printed by acquire.py
 # (pipeline/raw/boundaries/district_names.txt). Matching ignores case.
 district_name,district_id,division_id,division_name,verified,source
-Mukah,dist:mukah,div:mukah,Mukah,no,to verify
-Dalat,dist:dalat,div:mukah,Mukah,no,to verify
-Daro,dist:daro,div:mukah,Mukah,no,to verify
-Matu,dist:matu,div:mukah,Mukah,no,to verify
-Tanjung Manis,dist:tanjung-manis,div:mukah,Mukah,no,to verify
-Sibu,dist:sibu,div:sibu,Sibu,no,to verify
-Kanowit,dist:kanowit,div:sibu,Sibu,no,to verify
-Selangau,dist:selangau,div:sibu,Sibu,no,to verify
-Bintulu,dist:bintulu,div:bintulu,Bintulu,no,to verify
-Tatau,dist:tatau,div:bintulu,Bintulu,no,to verify
-Sebauh,dist:sebauh,div:bintulu,Bintulu,no,to verify
-Sarikei,dist:sarikei,div:sarikei,Sarikei,no,to verify
-Maradong,dist:maradong,div:sarikei,Sarikei,no,to verify
-Julau,dist:julau,div:sarikei,Sarikei,no,to verify
-Pakan,dist:pakan,div:sarikei,Sarikei,no,to verify
+Mukah,dist:mukah,div:mukah,Mukah,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Dalat,dist:dalat,div:mukah,Mukah,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Daro,dist:daro,div:mukah,Mukah,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Matu,dist:matu,div:mukah,Mukah,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Tanjung Manis,dist:tanjung-manis,div:mukah,Mukah,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Sibu,dist:sibu,div:sibu,Sibu,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Kanowit,dist:kanowit,div:sibu,Sibu,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Selangau,dist:selangau,div:sibu,Sibu,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Bintulu,dist:bintulu,div:bintulu,Bintulu,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Tatau,dist:tatau,div:bintulu,Bintulu,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Sebauh,dist:sebauh,div:bintulu,Bintulu,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Sarikei,dist:sarikei,div:sarikei,Sarikei,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Maradong,dist:maradong,div:sarikei,Sarikei,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14 (official spelling Meradong; Maradong matches the geoBoundaries shape name)
+Julau,dist:julau,div:sarikei,Sarikei,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14
+Pakan,dist:pakan,div:sarikei,Sarikei,yes,sarawak.gov.my Administrative Division and Districts page - checked 2026-11-14

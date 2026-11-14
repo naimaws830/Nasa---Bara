@@ -12,9 +12,10 @@ $steps = @(
     @('acquire.py'),
     @('clean.py'),
     @('aggregate.py'),
-    @('harmonize.py'),
-    $(if ($Production) { @('export.py') } else { @('export.py', '--allow-unverified') })
+    @('harmonize.py')
 )
+# Leading comma keeps a one-item step as an array; without it PowerShell unrolls @('export.py') to a string.
+if ($Production) { $steps += , @('export.py') } else { $steps += , @('export.py', '--allow-unverified') }
 if ($Production) { $steps += , @('validate.py', '--production') }
 
 foreach ($step in $steps) {
