@@ -6,9 +6,9 @@ import { getState, setState, subscribe } from './store.js';
 import { loadCalendar, loadHarmonize, loadMeta } from './data.js';
 import {
   APIMS_URL, VIEW_NAME, anomalyText, busiestYear, compareText, estimateRange, fireSeason, fmtCount, isProvisional,
-  levelOf, monthLabel, monthName, monthsInRange, periodLabel, plainSummary, preparedness, referenceText,
+  levelOf, meaningOfMonth, monthLabel, monthName, monthsInRange, periodLabel, plainSummary, preparedness, referenceText,
 } from './series.js';
-import { addInfo } from './ui.js';
+import { addInfo, meaningBox } from './ui.js';
 
 let ui = null;
 
@@ -90,6 +90,12 @@ async function render() {
     plain.append(el('p', null, line));
   }
   out.push(plain);
+
+  // What this means: good or bad for fires, for this time of year.
+  const sea = await seasonFor(cal, s.areaId);
+  if (token !== ui.token) return;
+  const inSeason = !!sea.season?.months.includes(Number(m.slice(5, 7)));
+  out.push(meaningBox(meaningOfMonth({ area: cal.name, month: m, level: levelOf(h, median), inSeason })));
 
   // 2. Number, level, two key facts.
   const hero = el('div', 'st-hero');

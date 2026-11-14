@@ -267,6 +267,48 @@ def check_manifest(c: Checker):
             c.err("manifest.json", f"{entry['path']} changed after export (sha256 differs)")
 
 
+def check_forecast(c: Checker, meta):
+    """Optional D-05 files. Absent is fine (the panel hides); present must be consistent."""
+    if not (c.root / "forecast.json").exists():
+        return
+    f = c.load("forecast.json")
+    if f is None or not c.keys("forecast.json", f, ["issued", "basedOn", "target", "areas", "rainSource"]):
+        return
+    if f["basedOn"] != meta["lastCompleteMonth"]:
+        c.err("forecast.json", f"basedOn {f['basedOn']} != meta.lastCompleteMonth {meta['lastCompleteMonth']}")
+    y, m = int(f["basedOn"][:4]), int(f["basedOn"][5:7])
+    want = f"{y + (m == 12)}-{m % 12 + 1:02d}"
+    if f["target"] != want:
+        c.err("forecast.json", f"target {f['target']} should be {want}")
+    ids = {a["id"] for a in meta["areas"]}
+    for aid, a in f["areas"].items():
+        where = f"forecast.json areas.{aid}"
+        if aid not in ids:
+            c.err(where, "unknown area")
+        if a.get("show") not in ("model", "typical"):
+            c.err(where, "show must be 'model' or 'typical'")
+        for block in (a, a.get("typical", {})):
+            if not (is_count(block.get("expected")) and is_count(block.get("low")) and is_count(block.get("high"))
+                    and block["low"] <= block["high"]):
+                c.err(where, f"bad expected/low/high {block.get('expected')}, {block.get('low')}, {block.get('high')}")
+        if a.get("show") == "model" and not a.get("evaluation", {}).get("beatsTypicalMonth"):
+            c.err(where, "model shown although it did not beat the typical-month guess")
+        for k in ("dry", "normal", "wet"):
+            sc = a.get("scenarios", {}).get(k, {})
+            if not (is_count(sc.get("expected")) and is_count(sc.get("rainMm"))):
+                c.err(where, f"scenario {k} incomplete")
+    if (c.root / "rain.json").exists():
+        r = c.load("rain.json")
+        if r and c.keys("rain.json", r, ["months", "areas", "units"]):
+            if r["months"] != sorted(r["months"]) or r["months"][-1] < meta["lastCompleteMonth"]:
+                c.err("rain.json", "months must be sorted and reach meta.lastCompleteMonth")
+            for aid, a in r["areas"].items():
+                if len(a.get("rainMm", [])) != len(r["months"]) or len(a.get("normalMm", [])) != 12:
+                    c.err(f"rain.json areas.{aid}", "rainMm must match months; normalMm must have 12 values")
+                if any(v is not None and not is_count(v) for v in a.get("rainMm", [])):
+                    c.err(f"rain.json areas.{aid}", "rain values must be non-negative numbers or null")
+
+
 def validate_dir(root: Path, production: bool = False) -> Checker:
     c = Checker(root)
     if not root.exists():
@@ -284,6 +326,8 @@ def validate_dir(root: Path, production: bool = False) -> Checker:
     check_map(c, meta, cals.get("sarawak"))
     check_geojson(c, meta)
     check_harmonize(c)
+    if meta:
+        check_forecast(c, meta)
     check_manifest(c)
     return c
 

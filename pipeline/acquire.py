@@ -3,6 +3,7 @@
     python pipeline/acquire.py                 # boundaries + all FIRMS sources
     python pipeline/acquire.py --only boundaries
     python pipeline/acquire.py --only firms
+    python pipeline/acquire.py --only rain     # NASA POWER rainfall (no key needed)
 
 Safe to re-run: finished windows are skipped, a crash resumes from the last finished
 window, failed requests retry 3 times with backoff. Credentials come only from environment
@@ -18,6 +19,8 @@ Outputs
   raw/boundaries/district_names.txt           names to check against districts.csv
   raw/firms/<SOURCE>/<year>.csv               FIRMS rows, one file per source per year
   raw/firms/<SOURCE>/_progress.json           resume state
+  raw/rain/power_monthly.json                 NASA POWER PRECTOTCORR monthly grid (mm/day) over the Sarawak box
+  raw/rain/power_daily_<YYYYMM>.json          daily grid for recent months the monthly product does not have yet
   raw/manifest.json                           every dataset, URL pattern, coverage, rows
 """
 from __future__ import annotations
@@ -328,9 +331,79 @@ def acquire_firms(manifest: dict, days: int) -> None:
         print(f"  {source:16s} " + (", ".join(f"{y}: {n}" for y, n in rows.items()) or "no rows"))
 
 
+# ---------- 3. Rainfall (NASA POWER) ----------
+
+POWER = "https://power.larc.nasa.gov/api/temporal/{step}/regional"
+POWER_PARAM = "PRECTOTCORR"  # precipitation corrected, mm/day, MERRA-2 (recent days GEOS-IT)
+
+
+def power_regional(step: str, start: str, end: str) -> dict:
+    lon0, lat0, lon1, lat1 = BBOX
+    url = (POWER.format(step=step) + f"?parameters={POWER_PARAM}&community=AG&longitude-min={lon0}&longitude-max={lon1}"
+           f"&latitude-min={lat0}&latitude-max={lat1}&start={start}&end={end}&format=JSON")
+    resp = get(url, timeout=300)
+    try:
+        data = resp.json()
+    except ValueError:
+        raise PipelineError(f"NASA POWER returned no JSON (HTTP {resp.status_code}) for {url}")
+    if not data.get("features"):
+        raise PipelineError(f"NASA POWER returned no grid points: {str(data)[:300]}")
+    return data
+
+
+def acquire_rain(manifest: dict) -> None:
+    """Monthly rainfall grid 2001 to now. Months the monthly product does not have yet are summed from daily
+    values, but only when every day of the month is present (no partial months)."""
+    out = RAW / "rain"
+    out.mkdir(parents=True, exist_ok=True)
+    today = date.today()
+    monthly = power_regional("monthly", "2001", str(today.year))
+    write_json(out / "power_monthly.json", monthly)
+    values = monthly["features"][0]["properties"]["parameter"][POWER_PARAM]
+    have = sorted(k for k, v in values.items() if not k.endswith("13") and v != -999)
+    last = have[-1]
+    print(f"Rain: NASA POWER monthly grid, {len(monthly['features'])} points, {have[0][:4]}-{have[0][4:]} to {last[:4]}-{last[4:]}")
+
+    # Fill complete months after the last monthly value from the daily product.
+    filled = []
+    y, m = int(last[:4]), int(last[4:])
+    while True:
+        m += 1
+        if m > 12:
+            y, m = y + 1, 1
+        first = date(y, m, 1)
+        nxt = date(y + (m == 12), m % 12 + 1, 1)
+        if nxt > today:
+            break
+        daily = power_regional("daily", first.strftime("%Y%m%d"), (nxt - timedelta(days=1)).strftime("%Y%m%d"))
+        days = daily["features"][0]["properties"]["parameter"][POWER_PARAM]
+        bad = sum(1 for v in days.values() if v == -999)
+        if bad or len(days) != (nxt - first).days:
+            print(f"Rain: {first:%Y-%m} daily data incomplete ({bad} missing days); stopping at the last complete month")
+            break
+        write_json(out / f"power_daily_{first:%Y%m}.json", daily)
+        filled.append(f"{first:%Y-%m}")
+    if filled:
+        print(f"Rain: added {', '.join(filled)} from NASA POWER daily data")
+    for old in out.glob("power_daily_*.json"):
+        if f"{old.stem[-6:-2]}-{old.stem[-2:]}" not in filled:
+            old.unlink()
+
+    manifest["datasets"]["rain"] = {
+        "name": "NASA POWER PRECTOTCORR (precipitation corrected), MERRA-2 and GEOS-IT, regional grid",
+        "url_pattern": POWER.format(step="monthly") + "?parameters=PRECTOTCORR&community=AG&...",
+        "units": "mm/day",
+        "points": len(monthly["features"]),
+        "coverage_start": f"{have[0][:4]}-{have[0][4:]}",
+        "coverage_end": filled[-1] if filled else f"{last[:4]}-{last[4:]}",
+        "daily_filled": filled,
+        "downloaded": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--only", choices=["boundaries", "firms"])
+    parser.add_argument("--only", choices=["boundaries", "firms", "rain"])
     parser.add_argument("--days", type=int, default=5, help="days per FIRMS request (FIRMS allows 1 to 5)")
     args = parser.parse_args()
 
@@ -347,6 +420,8 @@ def main():
             acquire_boundaries(manifest)
         if args.only in (None, "firms"):
             acquire_firms(manifest, args.days)
+        if args.only in (None, "rain"):
+            acquire_rain(manifest)
     finally:
         manifest["updated"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         write_json(manifest_path, manifest, pretty=True)

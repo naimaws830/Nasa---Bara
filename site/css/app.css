@@ -184,6 +184,7 @@ a {
   grid-template-areas:
     "map      status"
     "calendar calendar"
+    "forecast forecast"
     "proof    export";
   gap: var(--space-16);
   align-items: start;
@@ -202,6 +203,15 @@ a {
 .panel-calendar { grid-area: calendar; }
 .panel-proof    { grid-area: proof; }
 .panel-export   { grid-area: export; }
+.panel-forecast { grid-area: forecast; }
+
+/* Without forecast.json the forecast panel hides itself; drop its row so no gap is left. */
+.layout.no-forecast {
+  grid-template-areas:
+    "map      status"
+    "calendar calendar"
+    "proof    export";
+}
 
 /* Shared panel header: title block on the left, tools on the right, aligned on one baseline row. */
 .panel-head {
@@ -240,8 +250,12 @@ a {
 
   .layout {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "map" "status" "calendar" "proof" "export";
+    grid-template-areas: "map" "status" "calendar" "forecast" "proof" "export";
     gap: var(--space-12);
+  }
+
+  .layout.no-forecast {
+    grid-template-areas: "map" "status" "calendar" "proof" "export";
   }
 
   .panel {
@@ -1611,4 +1625,291 @@ fieldset.field > legend + * {
 
 .prep-foot {
   margin-top: var(--space-8) !important;
+}
+
+/* ---------- C-05: outlook and rainfall ---------- */
+
+.fc-area {
+  margin: 0 0 var(--space-16);
+  font-weight: 600;
+}
+
+.fc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-16) var(--space-32);
+}
+
+.fc-range-text {
+  margin: var(--space-8) 0;
+  font-weight: 600;
+}
+
+.fc-rangebar {
+  position: relative;
+  height: 28px;
+  margin: var(--space-8) 0 var(--space-16);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.fc-rangebar-span {
+  position: absolute;
+  top: 6px;
+  height: 12px;
+  background: var(--fire-2);
+  box-shadow: inset 0 0 0 1px rgb(42 34 27 / 0.2);
+}
+
+.fc-rangebar-dot {
+  position: absolute;
+  top: 2px;
+  width: 4px;
+  height: 20px;
+  margin-left: -2px;
+  background: var(--peat);
+}
+
+.fc-rangebar-min,
+.fc-rangebar-max {
+  position: absolute;
+  bottom: -18px;
+  font-size: var(--text-min);
+  color: var(--peat-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.fc-rangebar-min { left: 0; }
+.fc-rangebar-max { right: 0; }
+
+.fc-scen .st-subhead {
+  margin: 0 0 var(--space-8);
+}
+
+.fc-scen-list {
+  margin: 0 0 var(--space-8);
+  padding: 0;
+  list-style: none;
+}
+
+.fc-scen-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 5.5rem;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+
+.fc-scen-bar {
+  height: 14px;
+  background: var(--haze);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.fc-scen-fill {
+  display: block;
+  height: 100%;
+}
+
+.fc-scen-dry .fc-scen-fill { background: var(--fire-4); }
+.fc-scen-normal .fc-scen-fill { background: var(--fire-2); }
+.fc-scen-wet .fc-scen-fill { background: var(--rain); }
+
+.fc-scen-val {
+  font-weight: 700;
+  text-align: right;
+}
+
+.fc-scen p {
+  margin: 0 0 var(--space-4);
+}
+
+.fc-chart-wrap {
+  margin-top: var(--space-24);
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--line);
+}
+
+.fc-chart-wrap .st-subhead {
+  margin: 0;
+}
+
+.fc-chart-sub {
+  margin: var(--space-4) 0 var(--space-8);
+}
+
+.fc-chart {
+  position: relative;
+  min-height: 280px;
+}
+
+.fc-bar { fill: var(--rain); }
+.fc-bar-dry { fill: var(--fire-3); }
+.fc-normal { stroke: var(--peat); stroke-width: 2; }
+.fc-line { fill: none; stroke: var(--series-harmonized); stroke-width: 2.5; stroke-linejoin: round; }
+.fc-pt { fill: var(--series-harmonized); stroke: var(--surface); stroke-width: 1.5; }
+.fc-hover { fill: rgb(42 34 27 / 0.06); }
+
+.fc-test {
+  margin: var(--space-12) 0 0;
+  max-width: 80ch;
+}
+
+@media (max-width: 699px) {
+  .fc-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fc-scen-list li {
+    grid-template-columns: minmax(0, 1fr) 4.5rem;
+  }
+
+  .fc-scen-bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+.fc-scen-pct {
+  margin-left: var(--space-4);
+  font-weight: 400;
+  color: var(--peat-soft);
+}
+
+.fc-scen-list li {
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 7.5rem;
+}
+
+@media (max-width: 699px) {
+  .fc-scen-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .fc-scen-val {
+    white-space: nowrap;
+  }
+}
+
+/* Outlook, plain-language layout: sentence + number on one line, bar underneath. */
+.fc-scen-list li,
+.fc-scen-list li:nth-child(n) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-4) var(--space-12);
+}
+
+.fc-scen-bar {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.fc-scen-label {
+  font-weight: 600;
+}
+
+.fc-scen-val {
+  white-space: nowrap;
+}
+
+.fc-note {
+  margin: var(--space-8) 0 0;
+}
+
+.fc-more {
+  margin-top: var(--space-16);
+}
+
+.fc-more p {
+  margin: var(--space-8) 0 0;
+  max-width: 80ch;
+}
+
+/* ---------- Section navigation (sticky) ---------- */
+
+.section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--line);
+  background: rgb(227 229 223 / 0.94);
+  backdrop-filter: blur(6px);
+}
+
+.section-nav ul {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-4) 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.section-nav ul::-webkit-scrollbar {
+  display: none;
+}
+
+.section-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--space-12);
+  border-radius: var(--radius-input);
+  color: var(--peat-soft);
+  font-size: var(--text-small);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.section-nav a:hover {
+  background: var(--blackwater-soft);
+  color: var(--peat);
+}
+
+.section-nav a[aria-current="true"] {
+  background: var(--blackwater);
+  color: var(--haze);
+}
+
+/* Land below the sticky bar, not under it. */
+#controls,
+.panel {
+  scroll-margin-top: 64px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* "What this means": one plain takeaway per section */
+.meaning {
+  margin: 0 0 var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border-left: 4px solid var(--blackwater);
+  background: var(--blackwater-soft);
+}
+
+.meaning-label {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-min);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blackwater);
+}
+
+.meaning-text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  text-wrap: pretty;
+  max-width: 80ch;
+}
+
+.fc-chart-wrap .meaning {
+  margin-top: var(--space-12);
 }

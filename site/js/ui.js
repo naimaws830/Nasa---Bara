@@ -29,6 +29,20 @@ export function infoToggle(label, html) {
   return { button, box };
 }
 
+/** A highlighted "What this means" box with one plain takeaway. */
+export function meaningBox(text) {
+  const box = document.createElement('div');
+  box.className = 'meaning';
+  const label = document.createElement('p');
+  label.className = 'meaning-label';
+  label.textContent = 'What this means';
+  const p = document.createElement('p');
+  p.className = 'meaning-text';
+  p.textContent = text;
+  box.append(label, p);
+  return box;
+}
+
 /** Attach an info toggle to a panel: button after the heading, box after the panel header. */
 export function addInfo(root, label, html) {
   const { button, box } = infoToggle(label, html);

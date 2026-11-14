@@ -5,8 +5,8 @@
 
 import { getState, subscribe } from './store.js';
 import { loadCalendar, loadHarmonize, loadMeta } from './data.js';
-import { MONTH_SHORT, fmtCount, monthLabel, periodLabel } from './series.js';
-import { addInfo } from './ui.js';
+import { MONTH_SHORT, fmtCount, meaningOfProof, monthLabel, periodLabel } from './series.js';
+import { addInfo, meaningBox } from './ui.js';
 
 // Drawing order matters: from VIIRS's first month the harmonized value IS the VIIRS count, so harmonized is
 // drawn wide underneath and raw VIIRS thin on top, keeping both visible where they coincide.
@@ -34,9 +34,7 @@ export async function mount(root) {
         </fieldset>
       </div>
     </header>
-    <p class="pf-purpose">In 2012 a sharper satellite took over, and it sees about <strong id="pf-ratio">4</strong> times
-      more hotspots. Without an adjustment, fires would seem to jump in 2012. This panel checks that our adjusted line
-      lets you compare any year with any other.</p>
+    <div id="pf-meaning"></div>
     <div class="pf-result" id="pf-result"></div>
     <p class="pf-sub small-text" id="pf-sub"></p>
     <ul class="pf-legend" aria-label="Series">
@@ -121,8 +119,9 @@ async function render() {
   ui.sub.textContent = ui.scale === 'annual'
     ? `${cal.name}: hotspots per year, ${cal.months[0].slice(0, 4)} to ${lastYear}.`
     : `${cal.name}: hotspots per month, ${periodLabel(s.startMonth, s.endMonth)}.`;
-  const ratio = overlapRatio(cal);
-  ui.root.querySelector('#pf-ratio').textContent = ratio ? String(Math.round(ratio)) : 'several';
+  ui.root.querySelector('#pf-meaning').replaceChildren(meaningBox(meaningOfProof({
+    area: cal.name, annual: annualSeries(cal, lastYear), ratio: overlapRatio(cal),
+  })));
   ui.idx = null;
   renderTable();
   draw();

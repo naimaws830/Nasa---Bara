@@ -56,6 +56,27 @@ export async function loadHarmonize() {
   return cached('harmonize.json', () => fetchJSON('harmonize.json'));
 }
 
+/** Optional extra (D-05): next-month outlook. Resolves to null when the file is not published. */
+export async function loadForecast() {
+  await loadMeta();
+  return cached('forecast.json', () => fetchOptional('forecast.json'));
+}
+
+/** Optional extra (D-05): monthly rainfall per division and Sarawak. Resolves to null when absent. */
+export async function loadRain() {
+  await loadMeta();
+  return cached('rain.json', () => fetchOptional('rain.json'));
+}
+
+async function fetchOptional(file) {
+  try {
+    return await fetchJSON(file);
+  } catch (err) {
+    if (/HTTP 404/.test(err.message)) return null;
+    throw err;
+  }
+}
+
 /** Address of a published data file (for download links). Respects ?mock=1. Does not fetch. */
 export function dataURL(file) {
   return new URL(file, BASE).href;

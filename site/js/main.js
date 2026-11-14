@@ -12,6 +12,7 @@ const MODULES = [
   { path: './map.js', selector: '#map' },
   { path: './status.js', selector: '#status' },
   { path: './calendar.js', selector: '#calendar' },
+  { path: './forecast.js', selector: '#forecast' },
   { path: './proof.js', selector: '#proof' },
   { path: './export.js', selector: '#export' },
 ];
@@ -47,6 +48,11 @@ async function boot() {
   if (DEBUG) console.info('[Bara] Try setState({ selectedMonth: "2015-09" }) in the console.');
 
   await Promise.allSettled(MODULES.map(mountModule));
+  try {
+    (await import('./nav.js')).initNav();
+  } catch (err) {
+    console.warn('[Bara] navigation bar failed:', err);
+  }
 }
 
 function showBadge(meta) {

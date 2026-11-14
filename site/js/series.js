@@ -148,6 +148,90 @@ export function plainSummary({ area, month, value, median, status, provisional }
   return out;
 }
 
+// ---------- "What this means": the takeaway in everyday words ----------
+
+/**
+ * Meaning of a past month for ordinary readers: good or bad for fires, and how that fits the time of year.
+ * level: from levelOf(); inSeason: whether that calendar month is usually fire season here.
+ */
+export function meaningOfMonth({ area, month, level, inSeason }) {
+  const name = monthName(month);
+  if (!level) return `There is no full satellite record for ${monthLabel(month)}, so we can't say how it compares.`;
+  switch (level.key) {
+    case 'much':
+      return `A bad month for fires in ${area}: far more than a normal ${name}. Months like this can bring smoky air.`;
+    case 'higher':
+      return inSeason
+        ? `A busier fire-season month than usual in ${area}. Worth keeping an eye on haze news at times like this.`
+        : `More fires than a normal ${name} in ${area}, even though this is usually a quieter time of year.`;
+    case 'normal':
+      return inSeason
+        ? `A typical fire-season month for ${area}: fires are common at this time of year, and this one was no worse than usual.`
+        : `A typical ${name} for ${area}: nothing unusual.`;
+    default:
+      return inSeason
+        ? `Good news: a calmer fire season than usual in ${area}.`
+        : `Good news: fewer fires than usual in ${area}, at an already quiet time of year.`;
+  }
+}
+
+/** Meaning of the next-month estimate: how busy that month normally is here, and what could change it. */
+export function meaningOfNext({ area, monthName: name, expected, peakMedian, dryExpected, rainMattered }) {
+  const share = peakMedian > 0 ? expected / peakMedian : 0;
+  const busy = share < 0.25 ? `${name} is usually a quiet month for fires in ${area}.`
+    : share < 0.75 ? `${name} usually sees some fires in ${area}, though not as many as the peak of fire season.`
+      : `${name} is one of the busiest fire months in ${area}.`;
+  const risk = rainMattered && dryExpected > expected
+    ? ` A dry spell could push it up to about ${fmtCount(dryExpected)}, so it is still worth being careful with open burning.`
+    : '';
+  return busy + risk;
+}
+
+/** Meaning of a year of rain and hotspots: when did fires peak, and was that a dry month? rows from yearRows(). */
+export function meaningOfRainYear(rows, year) {
+  const withData = rows.filter((r) => r.hotspots != null);
+  if (!withData.length) return `No hotspot record for ${year} yet.`;
+  const peak = withData.reduce((a, b) => (b.hotspots > a.hotspots ? b : a));
+  if (Math.round(peak.hotspots) < 3) return `Very few hotspots in ${year}, so rain made little visible difference.`;
+  const when = `In ${year}, hotspots peaked in ${monthName(peak.month)} (${fmtCount(peak.hotspots)})`;
+  if (peak.pct == null) return `${when}.`;
+  if (peak.pct < 90) {
+    return `${when}, when rain was only ${peak.pct}% of normal: a dry month. Dry weather and fires go together.`;
+  }
+  return `${when}, when rain was ${peak.pct <= 110 ? 'about normal' : 'above normal'}, so dry weather alone doesn't explain that peak.`;
+}
+
+/**
+ * Meaning of the satellite check: why the fix matters, and what the fair 25-year record shows.
+ * annual: { keys: ['2001', ...], harmonizedCount: [...] } over complete years; ratio: VIIRS / MODIS.
+ */
+export function meaningOfProof({ area, annual, ratio }) {
+  const years = annual.keys.map(Number);
+  const h = annual.harmonizedCount;
+  const val = (from, to) => {
+    const v = years.map((y, i) => (y >= from && y <= to ? h[i] : null)).filter((x) => x != null);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  };
+  let worst = null;
+  years.forEach((y, i) => { if (h[i] != null && (!worst || h[i] > worst.v)) worst = { y, v: h[i] }; });
+  const last = years.at(-1);
+  const early = val(years[0], years[0] + 9);
+  const recent = val(last - 4, last);
+  const parts = [`An older and a newer satellite count fires differently${ratio ? `: the newer one sees about ${Math.round(ratio)} times more` : ''}.`
+    + ' Without this fix, fires would seem to jump suddenly in 2012. With it, all 25 years can be compared fairly.'];
+  if (worst) {
+    parts.push(`${area}'s worst year was ${worst.y}, with about ${fmtCount(worst.v)} hotspots`
+      + `${worst.y < 2012 ? ' (estimated, as the newer satellite started in 2012)' : ''}.`);
+  }
+  if (early && recent != null) {
+    const change = Math.round((1 - recent / early) * 100);
+    parts.push(change > 0
+      ? `In recent years (${last - 4} to ${last}) there were about ${change}% fewer hotspots a year than in ${years[0]} to ${years[0] + 9}.`
+      : `In recent years (${last - 4} to ${last}) there were about ${-change}% more hotspots a year than in ${years[0]} to ${years[0] + 9}.`);
+  }
+  return parts.join(' ');
+}
+
 // ---------- Preparedness (history-based, never a live alert) ----------
 
 export const APIMS_URL = 'https://eqms.doe.gov.my/APIMS/main';
@@ -267,10 +351,22 @@ export function toCSV(columns, rows) {
 }
 
 export const MONTHLY_COLUMNS = ['areaId', 'areaName', 'month', 'sourcePeriod', 'rawModisCount', 'rawViirsCount',
-  'harmonizedCount', 'status', 'seasonalMedian', 'anomalyScore', 'units'];
+  'harmonizedCount', 'status', 'seasonalMedian', 'anomalyScore', 'units',
+  'rainAreaId', 'rainMm', 'rainNormalMm', 'rainPctOfNormal'];
 
-/** One row per month of the selected range, copied from the calendar JSON (nothing computed but the source label). */
-export function monthlyRows(cal, meta, start, end) {
+/** Rain series used for an area: its own, else its division's, else Sarawak's. */
+export function rainAreaFor(meta, rain, areaId) {
+  if (!rain) return null;
+  if (rain.areas[areaId]) return areaId;
+  const a = meta.areas.find((x) => x.id === areaId);
+  if (a?.division && rain.areas[a.division]) return a.division;
+  return rain.areas.sarawak ? 'sarawak' : null;
+}
+
+/** One row per month of the selected range, copied from the calendar JSON (and rain.json when given). */
+export function monthlyRows(cal, meta, start, end, rain = null) {
+  const rid = rainAreaFor(meta, rain, cal.areaId);
+  const rainAt = rid ? new Map(rain.months.map((m, k) => [m, rain.areas[rid].rainMm[k]])) : null;
   return monthsInRange(cal, start, end).map((i) => {
     const m = cal.months[i];
     const products = productsForMonth(meta, m)
@@ -287,6 +383,44 @@ export function monthlyRows(cal, meta, start, end) {
       seasonalMedian: cal.seasonalMedian[i],
       anomalyScore: cal.anomalyScore[i],
       units: cal.units,
+      ...rainColumns(rid, rainAt, rid ? rain.areas[rid].normalMm : null, m),
+    };
+  });
+}
+
+function rainColumns(rid, rainAt, normals, m) {
+  if (!rid) return { rainAreaId: null, rainMm: null, rainNormalMm: null, rainPctOfNormal: null };
+  const mm = rainAt.get(m) ?? null;
+  const normal = normals[Number(m.slice(5, 7)) - 1];
+  return {
+    rainAreaId: rid, rainMm: mm, rainNormalMm: normal,
+    rainPctOfNormal: mm != null && normal ? Math.round((mm / normal) * 100) : null,
+  };
+}
+
+export const OUTLOOK_COLUMNS = ['areaId', 'areaName', 'targetMonth', 'basedOnDataTo', 'shown', 'expected', 'low', 'high',
+  'modelExpected', 'modelLow', 'modelHigh', 'typicalExpected', 'typicalLow', 'typicalHigh', 'typicalYears',
+  'expectedIfDry', 'rainMmIfDry', 'expectedIfNormal', 'rainMmIfNormal', 'expectedIfWet', 'rainMmIfWet',
+  'rainLast2MonthsPctVsNormal', 'driver', 'testYear', 'testErrorShown', 'testErrorModel', 'testErrorTypical', 'issued'];
+
+/** One row per area of forecast.json. Values copied from the file; 'expected/low/high' = what the panel shows. */
+export function outlookRows(forecast, meta) {
+  return Object.entries(forecast.areas).map(([id, o]) => {
+    const shown = o.show === 'model' ? o : o.typical;
+    const ev = o.evaluation;
+    return {
+      areaId: id, areaName: meta.areas.find((a) => a.id === id)?.name ?? id,
+      targetMonth: forecast.target, basedOnDataTo: forecast.basedOn,
+      shown: o.show === 'model' ? 'model' : 'typical month', expected: shown.expected, low: shown.low, high: shown.high,
+      modelExpected: o.expected, modelLow: o.low, modelHigh: o.high,
+      typicalExpected: o.typical.expected, typicalLow: o.typical.low, typicalHigh: o.typical.high,
+      typicalYears: o.typical.years?.join('-'),
+      expectedIfDry: o.scenarios.dry.expected, rainMmIfDry: o.scenarios.dry.rainMm,
+      expectedIfNormal: o.scenarios.normal.expected, rainMmIfNormal: o.scenarios.normal.rainMm,
+      expectedIfWet: o.scenarios.wet.expected, rainMmIfWet: o.scenarios.wet.rainMm,
+      rainLast2MonthsPctVsNormal: o.rainLast2Pct, driver: o.driver,
+      testYear: ev.testYear, testErrorShown: (o.show === 'model' ? ev.model : ev.typicalMonth).WAPE,
+      testErrorModel: ev.model.WAPE, testErrorTypical: ev.typicalMonth.WAPE, issued: forecast.issued,
     };
   });
 }

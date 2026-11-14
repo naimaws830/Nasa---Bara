@@ -278,3 +278,135 @@ test('preparedness wording depends on the month of the year, and never alarms', 
     for (const l of p.lines) assert.doesNotMatch(l, /danger|emergency|warning|alert|evacuate/i);
   }
 });
+
+// ---------- D-05 / C-05: rainfall and outlook ----------
+
+const forecast = JSON.parse(readFileSync(new URL('forecast.json', DATA), 'utf8'));
+const rain = JSON.parse(readFileSync(new URL('rain.json', DATA), 'utf8'));
+const FC = await import('../site/js/forecast.js');
+
+test('outlook is for the month after the last complete month, from the same data', () => {
+  assert.equal(forecast.basedOn, meta.lastCompleteMonth);
+  const [y, m] = meta.lastCompleteMonth.split('-').map(Number);
+  assert.equal(forecast.target, `${y + (m === 12)}-${String((m % 12) + 1).padStart(2, '0')}`);
+});
+
+test('the panel shows the model only where it beat the typical-month guess', () => {
+  for (const [id, o] of Object.entries(forecast.areas)) {
+    const h = FC.headline(o);
+    if (o.evaluation.beatsTypicalMonth) {
+      assert.equal(o.show, 'model', id);
+      assert.equal(h.expected, o.expected);
+    } else {
+      assert.equal(o.show, 'typical', id);
+      assert.equal(h.expected, o.typical.expected);
+      assert.equal(h.fromModel, false);
+    }
+    assert.ok(h.low <= h.high);
+  }
+});
+
+test('districts use their division outlook; divisions and Sarawak use their own', () => {
+  assert.deepEqual(FC.outlookArea(meta, forecast, 'dist:daro'), { id: 'div:mukah', viaDivision: true });
+  assert.deepEqual(FC.outlookArea(meta, forecast, 'div:sibu'), { id: 'div:sibu', viaDivision: false });
+  assert.deepEqual(FC.outlookArea(meta, forecast, 'sarawak'), { id: 'sarawak', viaDivision: false });
+});
+
+test('scenarios run dry to wet with less rain giving at least as many hotspots', () => {
+  for (const [id, o] of Object.entries(forecast.areas)) {
+    const s = o.scenarios;
+    assert.ok(s.dry.rainMm < s.normal.rainMm && s.normal.rainMm < s.wet.rainMm, id);
+    assert.ok(s.dry.expected >= s.wet.expected, `${id}: dry ${s.dry.expected} < wet ${s.wet.expected}`);
+  }
+});
+
+test('rain chart rows equal rain.json and the calendar', () => {
+  const cal = cals['div:mukah'];
+  const rows = FC.yearRows(cal, rain, 'div:mukah', 2019);
+  const r = rain.areas['div:mukah'];
+  rows.forEach((row, k) => {
+    const m = `2019-${String(k + 1).padStart(2, '0')}`;
+    assert.equal(row.rainMm, r.rainMm[rain.months.indexOf(m)]);
+    assert.equal(row.normalMm, r.normalMm[k]);
+    assert.equal(row.hotspots, cal.harmonizedCount[cal.months.indexOf(m)]);
+  });
+});
+
+test('monthly CSV carries the rain of the area (or its division) exactly', () => {
+  const rows = S.monthlyRows(cals['dist:daro'], meta, '2019-07', '2019-09', rain);
+  for (const row of rows) {
+    assert.equal(row.rainAreaId, 'div:mukah');
+    assert.equal(row.rainMm, rain.areas['div:mukah'].rainMm[rain.months.indexOf(row.month)]);
+  }
+  const parsed = parseCSV(S.toCSV(S.MONTHLY_COLUMNS, rows));
+  assert.deepEqual(parsed[0], S.MONTHLY_COLUMNS);
+});
+
+test('outlook CSV copies forecast.json, one row per area', () => {
+  const rows = S.outlookRows(forecast, meta);
+  assert.equal(rows.length, Object.keys(forecast.areas).length);
+  for (const r of rows) {
+    const o = forecast.areas[r.areaId];
+    assert.equal(r.expectedIfDry, o.scenarios.dry.expected);
+    assert.equal(r.expected, o.show === 'model' ? o.expected : o.typical.expected);
+    assert.equal(r.targetMonth, forecast.target);
+  }
+  const parsed = parseCSV(S.toCSV(S.OUTLOOK_COLUMNS, rows));
+  assert.equal(parsed.length - 1, rows.length);
+});
+
+test('outlook sentences are plain and use the forecast numbers', () => {
+  for (const [id, o] of Object.entries(forecast.areas)) {
+    const h = FC.headline(o);
+    const lines = FC.outlookSentences({ target: forecast.target, area: id, h, o });
+    assert.match(lines[0], new RegExp(`expect about ${S.fmtCount(h.expected)} hotspot`));
+    assert.match(lines[1], new RegExp(`between ${S.fmtCount(h.low)} and ${S.fmtCount(h.high)}`));
+    for (const l of lines) assert.doesNotMatch(l, /model|WAPE|percentile|regression|simple guess|anomaly|warning|alert/i);
+  }
+});
+
+// ---------- "What this means" ----------
+
+const BANNED = /anomaly|median|harmoni|WAPE|percentile|regression|model|warning|alert|danger|emergency/i;
+
+test('meaning of a month says good or bad in plain words, and fits the season', () => {
+  const lv = (k) => ({ key: k });
+  assert.match(S.meaningOfMonth({ area: 'Mukah Division', month: '2025-07', level: lv('much'), inSeason: true }), /bad month for fires/);
+  assert.match(S.meaningOfMonth({ area: 'X', month: '2025-12', level: lv('lower'), inSeason: false }), /Good news/);
+  assert.match(S.meaningOfMonth({ area: 'X', month: '2025-08', level: lv('normal'), inSeason: true }), /typical fire-season month/);
+  assert.match(S.meaningOfMonth({ area: 'X', month: '2005-01', level: null, inSeason: false }), /no full satellite record/);
+  for (const k of ['much', 'higher', 'normal', 'lower']) for (const inSeason of [true, false]) {
+    assert.doesNotMatch(S.meaningOfMonth({ area: 'X', month: '2025-08', level: lv(k), inSeason }), BANNED);
+  }
+});
+
+test('meaning of next month compares with the busiest time of year and the dry case', () => {
+  const quiet = S.meaningOfNext({ area: 'A', monthName: 'November', expected: 1, peakMedian: 181, dryExpected: 1.4, rainMattered: true });
+  assert.match(quiet, /usually a quiet month/);
+  assert.match(quiet, /dry spell could push it up/);
+  assert.match(S.meaningOfNext({ area: 'A', monthName: 'August', expected: 170, peakMedian: 181, dryExpected: 200, rainMattered: true }),
+    /one of the busiest fire months/);
+  assert.doesNotMatch(quiet, BANNED);
+});
+
+test('meaning of a rain year names the real peak month and its rain', () => {
+  const cal = cals.sarawak;
+  const rows = FC.yearRows(cal, rain, 'sarawak', 2019);
+  const peak = rows.filter((r) => r.hotspots != null).reduce((a, b) => (b.hotspots > a.hotspots ? b : a));
+  const text = S.meaningOfRainYear(rows, 2019);
+  assert.match(text, new RegExp(`peaked in ${S.monthName(peak.month)} \(${S.fmtCount(peak.hotspots)}\)`));
+  assert.match(text, new RegExp(`${peak.pct}% of normal`));
+  assert.doesNotMatch(text, BANNED);
+});
+
+test('meaning of the satellite check uses the real worst year and the real change', async () => {
+  const { annualSeries, overlapRatio } = await import('../site/js/proof.js');
+  const cal = cals.sarawak;
+  const annual = annualSeries(cal, cal.reference.completeYears[1]);
+  const text = S.meaningOfProof({ area: 'Sarawak', annual, ratio: overlapRatio(cal) });
+  let worst = null;
+  annual.keys.forEach((y, i) => { if (annual.harmonizedCount[i] != null && (!worst || annual.harmonizedCount[i] > worst.v)) worst = { y, v: annual.harmonizedCount[i] }; });
+  assert.match(text, new RegExp(`worst year was ${worst.y}, with about ${S.fmtCount(worst.v)} hotspots`));
+  assert.match(text, /fewer hotspots a year than in 2001 to 2010/);
+  assert.doesNotMatch(text, BANNED);
+});

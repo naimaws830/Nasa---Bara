@@ -5,8 +5,10 @@
 // Files are built in the browser (Blob), so the links work locally and on GitHub Pages.
 
 import { getState, subscribe } from './store.js';
-import { dataURL, loadAreas, loadCalendar, loadMap, loadMeta } from './data.js';
-import { MONTHLY_COLUMNS, SQUARE_COLUMNS, monthlyRows, periodLabel, toCSV } from './series.js';
+import { dataURL, loadAreas, loadCalendar, loadForecast, loadMap, loadMeta, loadRain } from './data.js';
+import {
+  MONTHLY_COLUMNS, OUTLOOK_COLUMNS, SQUARE_COLUMNS, monthLabel, monthlyRows, outlookRows, periodLabel, toCSV,
+} from './series.js';
 import { CELL, inSelectedArea, squareAreaAt } from './map.js';
 import { addInfo } from './ui.js';
 
@@ -36,6 +38,13 @@ export async function mount(root) {
       </div>
       <button type="button" class="button" id="ex-squares">Download CSV</button>
     </div>
+    <div class="ex-item" id="ex-outlook-item" hidden>
+      <div>
+        <h3 class="st-subhead">Next-month outlook</h3>
+        <p class="small-text" id="ex-outlook-info"></p>
+      </div>
+      <button type="button" class="button" id="ex-outlook">Download CSV</button>
+    </div>
     <p class="ex-status small-text" id="ex-status" role="status"></p>
     <details class="ex-files">
       <summary>Files for developers (JSON)</summary>
@@ -57,6 +66,13 @@ export async function mount(root) {
     squaresBtn: root.querySelector('#ex-squares'),
   };
   root.querySelector('#ex-monthly').addEventListener('click', downloadMonthly);
+  root.querySelector('#ex-outlook').addEventListener('click', downloadOutlook);
+  const forecast = await loadForecast().catch(() => null);
+  if (forecast) {
+    root.querySelector('#ex-outlook-item').hidden = false;
+    root.querySelector('#ex-outlook-info').textContent = `The hotspot outlook for ${monthLabel(forecast.target)}, with the
+      dry / normal / wet cases, for each division and Sarawak.`;
+  }
   ui.squaresBtn.addEventListener('click', downloadSquares);
   subscribe((s, changed) => {
     if (changed.some((k) => ['areaId', 'startMonth', 'endMonth'].includes(k))) render();
@@ -73,7 +89,7 @@ async function render() {
   const cal = await loadCalendar(s.areaId);
   const rows = monthlyRows(cal, ui.meta, s.startMonth, s.endMonth);
   ui.scope.textContent = `For ${cal.name}, ${periodLabel(s.startMonth, s.endMonth)}.`;
-  ui.info.textContent = `A spreadsheet with one row for each of the ${rows.length} months.`;
+  ui.info.textContent = `A spreadsheet with one row for each of the ${rows.length} months: hotspots and rainfall.`;
   const files = [
     [`calendar/${s.areaId.replace(':', '_')}.json`, `Calendar for ${cal.name}`],
     ['harmonize.json', 'Harmonization method and errors'],
@@ -106,9 +122,18 @@ function save(name, text) {
 async function downloadMonthly() {
   const s = getState();
   const cal = await loadCalendar(s.areaId);
-  const rows = monthlyRows(cal, ui.meta, s.startMonth, s.endMonth);
+  const rain = await loadRain().catch(() => null);
+  const rows = monthlyRows(cal, ui.meta, s.startMonth, s.endMonth, rain);
   save(`${fileBase(s)}_monthly.csv`, toCSV(MONTHLY_COLUMNS, rows));
   ui.status.textContent = `Saved ${rows.length} months for ${cal.name}.`;
+}
+
+async function downloadOutlook() {
+  const forecast = await loadForecast();
+  if (!forecast) return;
+  const rows = outlookRows(forecast, ui.meta);
+  save(`bara_outlook_${forecast.target}.csv`, toCSV(OUTLOOK_COLUMNS, rows));
+  ui.status.textContent = `Saved the ${monthLabel(forecast.target)} outlook for ${rows.length} areas.`;
 }
 
 /** Observed squares in the area and range. Exported for tests. */
