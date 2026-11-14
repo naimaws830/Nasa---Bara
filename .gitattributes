@@ -1,0 +1,7 @@
+# Default: normalise text to LF in the repository. (Later lines override earlier ones, so this comes first.)
+* text=auto
+
+# Pipeline output is hashed in site/data/manifest.json, so git must store and check it out byte for byte.
+# Without this, Windows checkouts get CRLF line endings and the hashes stop matching on other machines.
+site/data/** -text
+docs/data-samples/** -text

@@ -334,18 +334,20 @@ def write_docs(files: dict, audit: dict, coverage: dict) -> None:
         "",
     ]
     DOCS.mkdir(parents=True, exist_ok=True)
-    (DOCS / "methodology.md").write_text("\n".join(lines), encoding="utf-8")
+    (DOCS / "methodology.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
 def write_samples(clean: pd.DataFrame, files: dict) -> None:
     folder = DOCS / "data-samples"
     folder.mkdir(parents=True, exist_ok=True)
     sample = clean.sample(n=min(200, len(clean)), random_state=0).sort_values(["date", "time"])
-    sample.assign(date=pd.to_datetime(sample["date"]).dt.strftime("%Y-%m-%d")).to_csv(folder / "hotspots_sample.csv", index=False)
+    # LF line endings on every OS, so the files are identical in git and on any machine.
+    sample.assign(date=pd.to_datetime(sample["date"]).dt.strftime("%Y-%m-%d")).to_csv(
+        folder / "hotspots_sample.csv", index=False, lineterminator="\n")
     cal = files["calendar/sarawak.json"]
     pd.DataFrame({k: cal[k] for k in ("months", "harmonizedCount", "rawModisCount", "rawViirsCount",
                                       "seasonalMedian", "anomalyScore", "status")}).to_csv(
-        folder / "calendar_sarawak.csv", index=False)
+        folder / "calendar_sarawak.csv", index=False, lineterminator="\n")
 
 
 def main():

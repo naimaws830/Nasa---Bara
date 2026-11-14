@@ -150,7 +150,9 @@ def write_json(path: Path, obj, pretty: bool = False) -> None:
     text = json.dumps(obj, allow_nan=False, ensure_ascii=False,
                       indent=2 if pretty else None,
                       separators=None if pretty else (",", ":"))
-    path.write_text(text + "\n", encoding="utf-8")
+    # Always LF: manifest.json stores sha256 of these bytes, so they must be identical on Windows,
+    # in git and on the Linux machine that checks and deploys the site.
+    path.write_text(text + "\n", encoding="utf-8", newline="\n")
 
 
 def read_json(path: Path):
