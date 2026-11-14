@@ -1000,44 +1000,115 @@ async function create3D() {
     scene.add(areaGroup);
   }
 
-  // Columns: ONE InstancedMesh for every square.
+  // M-03.3: reuse one InstancedMesh and animate heights by stable square key.
+  // A small temporary union of the previous and next month lets columns shrink away.
+  // Old GSAP tweens are killed before a new month begins (4 months/second is supported).
   const colGeo = new THREE.BoxGeometry(CELL * K * 0.85, 1, CELL * 0.85);
   colGeo.translate(0, 0.5, 0);
   const colMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
   disposables.push(colGeo, colMat);
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let gsap = null;
+  try { ({ gsap } = await import('gsap')); }
+  catch (err) { console.warn('[map] GSAP unavailable; 3D columns update without animation.', err); }
   let columns = null;
+  let capacity = 0;
   let cells = [];
+  let renderedCells = [];
+  let currentHeights = new Map();
   let areaId = getState().areaId;
+  let heightTween = null;
   const tmp = new THREE.Object3D();
   const color = new THREE.Color();
 
   function heightOf(count, max) {
-    // Month: fixed scale so months compare (100 detections = 0.6 units). Range: scaled to the busiest square.
+    // Height encodes hotspot detections, not fire height or terrain elevation.
     return ctx.scope === 'month' ? 0.02 + 0.06 * Math.sqrt(count) : 0.02 + 0.7 * Math.sqrt(count / Math.max(max, 1));
   }
 
-  function buildColumns() {
-    if (columns) { scene.remove(columns); columns.dispose(); }
-    columns = new THREE.InstancedMesh(colGeo, colMat, Math.max(cells.length, 1));
-    columns.count = cells.length;
-    const max = cells.reduce((a, c) => Math.max(a, c.count), 0);
-    cells.forEach((c, i) => {
+  function ensureCapacity(required) {
+    if (columns && capacity >= required) return;
+    // Grow geometrically rather than recreating the mesh once per month.
+    const nextCapacity = Math.max(1, 2 ** Math.ceil(Math.log2(Math.max(1, required))));
+    if (columns) {
+      scene.remove(columns);
+      columns.dispose(); // InstancedMesh GPU attributes only; geometry/material are shared.
+    }
+    columns = new THREE.InstancedMesh(colGeo, colMat, nextCapacity);
+    columns.count = 0;
+    columns.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    columns.frustumCulled = false; // Bounds vary during height tweens.
+    capacity = nextCapacity;
+    scene.add(columns);
+  }
+
+  function writeColumns() {
+    if (!columns) return;
+    const max = cells.reduce((n, c) => Math.max(n, c.count), 0);
+    for (let i = 0; i < renderedCells.length; i++) {
+      const c = renderedCells[i];
       const [x, y] = project(c.lon, c.lat);
-      const base = inSelectedArea(areaId, c.district, ctx.divisionOf) && areaId !== 'sarawak' ? AREA_H : LAND_H;
+      const inside = inSelectedArea(areaId, c.district, ctx.divisionOf);
+      const base = inside && areaId !== 'sarawak' ? AREA_H : LAND_H;
       tmp.position.set(x, base, y);
-      tmp.scale.set(1, heightOf(c.count, max), 1);
+      tmp.scale.set(1, Math.max(currentHeights.get(c.key) || 0, 0.0001), 1);
       tmp.updateMatrix();
       columns.setMatrixAt(i, tmp.matrix);
       const hex = C.fire[binIndex(c.count, ctx.bins)];
-      const inside = inSelectedArea(areaId, c.district, ctx.divisionOf);
       color.set(inside ? hex : muted(hex, 0.6, C.haze));
       if (c.key === ctx.selectedKey) color.set(C.blackwater);
       columns.setColorAt(i, color);
-    });
+    }
+    columns.count = renderedCells.length;
     columns.instanceMatrix.needsUpdate = true;
     if (columns.instanceColor) columns.instanceColor.needsUpdate = true;
-    scene.add(columns);
     render();
+  }
+
+  function buildColumns({ animate = false } = {}) {
+    // Keep current heights when interrupting a tween, then retarget in place.
+    if (heightTween) { heightTween.kill(); heightTween = null; }
+    const max = cells.reduce((n, c) => Math.max(n, c.count), 0);
+    const targets = new Map(cells.map(c => [c.key, heightOf(c.count, max)]));
+    const canAnimate = animate && !!gsap && !reduceMotion.matches && ctx.scope === 'month';
+    const previous = canAnimate ? renderedCells : [];
+    const union = new Map();
+    for (const c of previous) union.set(c.key, c);
+    for (const c of cells) union.set(c.key, c);
+    renderedCells = [...union.values()];
+    ensureCapacity(renderedCells.length);
+    const from = new Float32Array(renderedCells.length);
+    const to = new Float32Array(renderedCells.length);
+    renderedCells.forEach((c, i) => {
+      from[i] = canAnimate ? (currentHeights.get(c.key) || 0) : (targets.get(c.key) || 0);
+      to[i] = targets.get(c.key) || 0;
+    });
+    const progress = { value: 0 };
+    const apply = () => {
+      const p = progress.value;
+      for (let i = 0; i < renderedCells.length; i++) {
+        currentHeights.set(renderedCells[i].key, from[i] + (to[i] - from[i]) * p);
+      }
+      writeColumns();
+    };
+    if (!canAnimate || !renderedCells.length) {
+      currentHeights = targets;
+      renderedCells = cells;
+      ensureCapacity(renderedCells.length);
+      writeColumns();
+      return;
+    }
+    apply();
+    heightTween = gsap.to(progress, {
+      value: 1, duration: 0.3, ease: 'power1.out', overwrite: true,
+      onUpdate: apply,
+      onComplete: () => {
+        heightTween = null;
+        currentHeights = targets;
+        renderedCells = cells;
+        writeColumns(); // Drop vanished instances so they cannot be selected.
+      },
+    });
   }
 
   let w = 0, h = 0;
@@ -1073,7 +1144,7 @@ async function create3D() {
     ndc.set((at[0] / r.width) * 2 - 1, -(at[1] / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     const hit = columns ? ray.intersectObject(columns, false)[0] : null;
-    return { cell: hit ? cells[hit.instanceId] : null, at };
+    return { cell: hit ? (renderedCells[hit.instanceId] && ctx.cellIndex.get(renderedCells[hit.instanceId].key)) || null : null, at };
   }
   let down = null;
   canvas.addEventListener('pointerdown', (e) => { down = [e.clientX, e.clientY]; });
@@ -1100,7 +1171,7 @@ async function create3D() {
   buildArea(areaId);
 
   return {
-    setCells(next, area) { cells = next; areaId = area; buildColumns(); },
+    setCells(next, area) { cells = next; areaId = area; buildColumns({ animate: true }); },
     setArea(id) { areaId = id; buildArea(id); fitArea(id); buildColumns(); },
     fitArea,
     zoomBy(f) {
@@ -1129,6 +1200,7 @@ async function create3D() {
     destroy() {
       ro.disconnect();
       controls.dispose();
+      if (heightTween) heightTween.kill();
       if (columns) columns.dispose();
       if (areaGroup) areaGroup.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
       for (const d of disposables) d.dispose();
