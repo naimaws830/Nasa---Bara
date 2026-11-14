@@ -1,0 +1,364 @@
+/* Bara app shell (C1). Other owners add styles in their marked sections at the end. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--haze);
+  color: var(--peat);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+}
+
+a {
+  color: var(--blackwater);
+}
+
+:focus-visible {
+  outline: 2px solid var(--blackwater);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.wrap {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-left: var(--space-24);
+  padding-right: var(--space-24);
+}
+
+/* ---------- Header ---------- */
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12) var(--space-24);
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-16);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+}
+
+.wordmark {
+  margin: 0;
+  font-size: var(--text-wordmark);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.slogan {
+  margin: 0;
+  color: var(--peat-soft);
+}
+
+.mode-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-8);
+  margin: 0;
+  padding: var(--space-4) var(--space-12);
+  border: 2px solid var(--blackwater);
+  font-size: var(--text-small);
+}
+
+.mode-badge strong {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.mode-badge[data-mode="mock"] {
+  border-color: var(--peat);
+  background: var(--peat);
+  color: var(--haze);
+}
+
+/* ---------- Controls bar ---------- */
+
+.controls-bar {
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-16);
+  border-top: 1px solid var(--haze-deep);
+  border-bottom: 1px solid var(--haze-deep);
+}
+
+/* ---------- Page-level error ---------- */
+
+.app-error {
+  margin: var(--space-16) 0 0;
+  padding: var(--space-12) var(--space-16);
+  border: 2px solid var(--peat);
+  background: var(--haze-deep);
+}
+
+.app-error p {
+  margin: 0;
+}
+
+.app-error p + p {
+  margin-top: var(--space-4);
+  font-size: var(--text-small);
+  color: var(--peat-soft);
+}
+
+/* ---------- Layout ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas:
+    "map      status"
+    "calendar calendar"
+    "proof    export"
+    "about    about";
+  column-gap: var(--space-32);
+  padding-bottom: var(--space-48);
+}
+
+.panel {
+  min-width: 0;
+  padding: var(--space-24) 0;
+  border-top: 1px solid var(--haze-deep);
+}
+
+.panel-map      { grid-area: map; min-height: clamp(320px, 55vh, 620px); border-top: 0; position: relative; }
+.panel-status   { grid-area: status; border-top: 0; }
+.panel-calendar { grid-area: calendar; }
+.panel-proof    { grid-area: proof; }
+.panel-export   { grid-area: export; }
+.panel-about    { grid-area: about; }
+
+@media (max-width: 899px) {
+  .wrap {
+    padding-left: var(--space-16);
+    padding-right: var(--space-16);
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "map" "status" "calendar" "proof" "export" "about";
+  }
+
+  .panel-map {
+    min-height: 320px;
+  }
+
+  .panel-status {
+    border-top: 1px solid var(--haze-deep);
+  }
+}
+
+/* ---------- Shared text styles ---------- */
+
+.panel-heading {
+  margin: 0 0 var(--space-12);
+  font-size: var(--text-heading);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.big-number {
+  font-size: var(--text-number);
+  font-weight: 700;
+  font-stretch: 75%;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.small-text {
+  font-size: var(--text-small);
+  color: var(--peat-soft);
+}
+
+.panel-placeholder {
+  margin: 0;
+  color: var(--peat-soft);
+}
+
+.panel-error {
+  margin: 0;
+}
+
+.panel-error-detail {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-small);
+  color: var(--peat-soft);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Form controls ---------- */
+
+select,
+input,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+select,
+input[type="month"],
+input[type="text"],
+input[type="number"] {
+  min-height: 36px;
+  padding: var(--space-4) var(--space-8);
+  border: 1px solid var(--peat-soft);
+  border-radius: var(--radius-input);
+  background: var(--haze);
+  color: var(--peat);
+}
+
+input[aria-invalid="true"] {
+  border: 2px solid var(--peat);
+}
+
+.button {
+  min-height: 36px;
+  padding: var(--space-4) var(--space-12);
+  border: 1px solid var(--blackwater);
+  border-radius: 0;
+  background: var(--haze);
+  color: var(--blackwater);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--haze-deep);
+}
+
+.button-primary {
+  background: var(--blackwater);
+  color: var(--haze);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--peat);
+}
+
+.button:disabled {
+  border-color: var(--peat-soft);
+  color: var(--peat-soft);
+  cursor: not-allowed;
+}
+
+input[type="radio"],
+input[type="checkbox"],
+input[type="range"] {
+  accent-color: var(--blackwater);
+}
+
+/* ---------- Controls (C1) ---------- */
+
+.controls-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-16) var(--space-24);
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.field > label,
+.field > legend {
+  padding: 0;
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+.field select {
+  min-width: 220px;
+  max-width: 100%;
+}
+
+.stepper {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.segmented {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+}
+
+.segmented legend {
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+.segmented label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.controls-messages {
+  margin-top: var(--space-8);
+  min-height: 1.5em;
+}
+
+.controls-messages p {
+  margin: 0;
+  font-size: var(--text-small);
+}
+
+.controls-error {
+  font-weight: 600;
+}
+
+.controls-note {
+  color: var(--peat-soft);
+}
+
+@media (max-width: 599px) {
+  .field,
+  .field select {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* B: map */
+
+/* C: panels */

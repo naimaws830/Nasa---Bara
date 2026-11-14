@@ -1,0 +1,351 @@
+{
+  "generatedAt": "2026-11-14T07:39:37Z",
+  "mode": "mock",
+  "files": [
+    {
+      "path": "areas.geojson",
+      "bytes": 1239,
+      "sha256": "65a39050c49714a1f51a946352aca7a506d9a3827435dddbfbd6394f35d78f5a",
+      "coverage": null
+    },
+    {
+      "path": "calendar/dist_bintulu.json",
+      "bytes": 13054,
+      "sha256": "999001070316d659ca89409c8eb20137bf65d22fd3147abe8d8d67d8f8c01e32",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/dist_dalat.json",
+      "bytes": 13091,
+      "sha256": "4d1084cb3da10cd80658e9ab4aaa8da0bd5cfc2ffd44d7a515923a5918d6d7af",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/dist_kanowit.json",
+      "bytes": 12885,
+      "sha256": "e71a0b9621fb2183771cdcdc231b8ccd061b96d78103ad6055e6bdee83008f73",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/dist_mukah.json",
+      "bytes": 13115,
+      "sha256": "aaf333e1a1ca1f47e02c85cb74fb51755ae8e291e3869fddbb5d3eb1905793d6",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/dist_sibu.json",
+      "bytes": 12951,
+      "sha256": "5c03ebc669189e5258ad1c66c3af63fdb41822d1551228eb454162c8d5fa99fa",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/dist_tatau.json",
+      "bytes": 12920,
+      "sha256": "e389d57e75b55b9dadd9c5694ca8a3f3de43301ce4ce299ceacff9fb7c230914",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/div_bintulu.json",
+      "bytes": 13148,
+      "sha256": "8e4aebdd43ddfaef5d71e71a5c6b73597f99dd12e35019ed5318d9f36b3c4aba",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/div_mukah.json",
+      "bytes": 13315,
+      "sha256": "9241254f26791bada1c340051c6841d23a1989a4bb587179b46f2fd4f5546838",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/div_sibu.json",
+      "bytes": 13100,
+      "sha256": "6d3bb3b1b4d55b2b94ab7985d90e8d3a932de4075037fc6bcbb5018a69e1313c",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "calendar/sarawak.json",
+      "bytes": 13918,
+      "sha256": "370025e4368e9939caf09ddb4e90947836177f145e5677cb033a85051e3cc453",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "harmonize.json",
+      "bytes": 2580,
+      "sha256": "33d0d9d8817072645bea55be74e695cf4a9b4f2467574f1cefd759f67f00cf71",
+      "coverage": null
+    },
+    {
+      "path": "map/2001.json",
+      "bytes": 8476,
+      "sha256": "2c7d536b96361237e760e98a3074f8870a360d35c0a4f82c7df4197bd68ccbdb",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2001-11"
+      }
+    },
+    {
+      "path": "map/2002.json",
+      "bytes": 17493,
+      "sha256": "c40f536b826fbca2dcff1e8c54fa6f1ad72e5ac239d5a1126269f56d49c337c3",
+      "coverage": {
+        "start": "2002-01",
+        "end": "2002-12"
+      }
+    },
+    {
+      "path": "map/2003.json",
+      "bytes": 14006,
+      "sha256": "b60546f00042604350a7e4bdb8f04cca033216195e2951b8dfde2181d5c4b808",
+      "coverage": {
+        "start": "2003-01",
+        "end": "2003-12"
+      }
+    },
+    {
+      "path": "map/2004.json",
+      "bytes": 16688,
+      "sha256": "e3e0c7d244769f54aeeee952492269cbf2540677c81d3a7b19c3359256f0b414",
+      "coverage": {
+        "start": "2004-01",
+        "end": "2004-12"
+      }
+    },
+    {
+      "path": "map/2005.json",
+      "bytes": 14270,
+      "sha256": "0e5cccf3a4339b79eeca0301a935dc4bf8cf3597edf23e9e59ba37a408d9cf44",
+      "coverage": {
+        "start": "2005-01",
+        "end": "2005-11"
+      }
+    },
+    {
+      "path": "map/2006.json",
+      "bytes": 20876,
+      "sha256": "f336fb7090dcb219c3446ac2938f262f258ff237c4b608899c89b0d6bf9bc747",
+      "coverage": {
+        "start": "2006-01",
+        "end": "2006-12"
+      }
+    },
+    {
+      "path": "map/2007.json",
+      "bytes": 13560,
+      "sha256": "eddfcab99517b48a45b6f7613fd3f0282e45ef35196c81a28fa21e5ffd4a2033",
+      "coverage": {
+        "start": "2007-01",
+        "end": "2007-12"
+      }
+    },
+    {
+      "path": "map/2008.json",
+      "bytes": 13198,
+      "sha256": "3753bbf68eb026271a24ac756e19370ff667323fe81b52013e7afdad861f1c66",
+      "coverage": {
+        "start": "2008-01",
+        "end": "2008-12"
+      }
+    },
+    {
+      "path": "map/2009.json",
+      "bytes": 18815,
+      "sha256": "d33bff7a9535b68c87d32ca6c14d5713391a74db36d0bd08d98227be522a66eb",
+      "coverage": {
+        "start": "2009-01",
+        "end": "2009-12"
+      }
+    },
+    {
+      "path": "map/2010.json",
+      "bytes": 15881,
+      "sha256": "99676fb531f5c1206fd7ff84c2172cc9613272baa5dc4726bf8cc268d1386683",
+      "coverage": {
+        "start": "2010-01",
+        "end": "2010-12"
+      }
+    },
+    {
+      "path": "map/2011.json",
+      "bytes": 15254,
+      "sha256": "b568e42e372aa07e7d986fac3f5d77d12b5cedd52e97f4066c80b486b99b06f3",
+      "coverage": {
+        "start": "2011-01",
+        "end": "2011-12"
+      }
+    },
+    {
+      "path": "map/2012.json",
+      "bytes": 52892,
+      "sha256": "2c2f5bd4cf3df0e206c3275c81bdb4cb4be8340d2c19c668250b32443edf327e",
+      "coverage": {
+        "start": "2012-01",
+        "end": "2012-12"
+      }
+    },
+    {
+      "path": "map/2013.json",
+      "bytes": 61061,
+      "sha256": "d081db5e37bd9d6a2c5dd952c12edf6396a572a8a53a05db39cdc666333f0d91",
+      "coverage": {
+        "start": "2013-01",
+        "end": "2013-12"
+      }
+    },
+    {
+      "path": "map/2014.json",
+      "bytes": 60275,
+      "sha256": "f69b4fd0b66930153a3f19fd780df3686d2bcca9113a37c350d63aadd0dfea76",
+      "coverage": {
+        "start": "2014-01",
+        "end": "2014-12"
+      }
+    },
+    {
+      "path": "map/2015.json",
+      "bytes": 149476,
+      "sha256": "e1f9e6cba4ed61a0260acd44206b719b40d88a96be9d3a61fe6317765eda1e57",
+      "coverage": {
+        "start": "2015-01",
+        "end": "2015-12"
+      }
+    },
+    {
+      "path": "map/2016.json",
+      "bytes": 63594,
+      "sha256": "0fd0f24417e8bd37206ad415e4233c27d243c037465a090039fde806f3a07bde",
+      "coverage": {
+        "start": "2016-01",
+        "end": "2016-12"
+      }
+    },
+    {
+      "path": "map/2017.json",
+      "bytes": 59746,
+      "sha256": "536cc53050dc0c5c331cd4859d3825437a9dbd95be6aa545a7782670026bfdeb",
+      "coverage": {
+        "start": "2017-01",
+        "end": "2017-12"
+      }
+    },
+    {
+      "path": "map/2018.json",
+      "bytes": 63765,
+      "sha256": "f84c8d3aa74fbfe90b1ad86331e825eff4869f939e563646960fda1b1526874f",
+      "coverage": {
+        "start": "2018-01",
+        "end": "2018-12"
+      }
+    },
+    {
+      "path": "map/2019.json",
+      "bytes": 134284,
+      "sha256": "c233c5f8ab90443513e9c36491f53d437306d0a7e45d76dfc3148f8c76b3f92c",
+      "coverage": {
+        "start": "2019-01",
+        "end": "2019-12"
+      }
+    },
+    {
+      "path": "map/2020.json",
+      "bytes": 59914,
+      "sha256": "d0661418d8c4e98554a49067dba28f57b086c0ed872cc0ed7602ea71425377e3",
+      "coverage": {
+        "start": "2020-01",
+        "end": "2020-12"
+      }
+    },
+    {
+      "path": "map/2021.json",
+      "bytes": 65976,
+      "sha256": "c37e1ec45acef502c66f9776e2047cdd722cbe9446c6a5bd57f79fc8409cf05f",
+      "coverage": {
+        "start": "2021-01",
+        "end": "2021-12"
+      }
+    },
+    {
+      "path": "map/2022.json",
+      "bytes": 61982,
+      "sha256": "b7e1dc74a868ce8138582b7e92b7cb8423edaa4a87b28880937d21f6340bc1b7",
+      "coverage": {
+        "start": "2022-01",
+        "end": "2022-12"
+      }
+    },
+    {
+      "path": "map/2023.json",
+      "bytes": 100148,
+      "sha256": "201d489e5d72c586ee7667f0b78d26b5f6f132e6bce7e8ddbfeceea79f79fdde",
+      "coverage": {
+        "start": "2023-01",
+        "end": "2023-12"
+      }
+    },
+    {
+      "path": "map/2024.json",
+      "bytes": 63497,
+      "sha256": "9f9a23149a829c7c32bbae731db15270d153b9d9adcab55cc30db15cf226e6d6",
+      "coverage": {
+        "start": "2024-01",
+        "end": "2024-12"
+      }
+    },
+    {
+      "path": "map/2025.json",
+      "bytes": 59316,
+      "sha256": "fead5bb83fd209bca6fc2a0d8798d684a7662522b9ccc5e8d029cf0fba1fa5a9",
+      "coverage": {
+        "start": "2025-01",
+        "end": "2025-12"
+      }
+    },
+    {
+      "path": "map/2026.json",
+      "bytes": 57487,
+      "sha256": "a16c547642bce3287a45c592de2ffbe83751fdd20a4e622e167a11667893eaa2",
+      "coverage": {
+        "start": "2026-01",
+        "end": "2026-10"
+      }
+    },
+    {
+      "path": "meta.json",
+      "bytes": 1969,
+      "sha256": "e8294494bcace36e76cc905407ed688231711f45bfd0bfde9169cbc4d2b3287a",
+      "coverage": {
+        "start": "2001-01",
+        "end": "2026-10"
+      }
+    }
+  ]
+}

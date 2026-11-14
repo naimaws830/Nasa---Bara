@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bara, Sarawak hotspot calendar</title>
+  <meta name="description" content="Harmonized MODIS and VIIRS satellite hotspot calendar for Sarawak, built from NASA FIRMS. Watch. Warn. Protect.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+
+  <!-- Optional libraries for the map (B). Loaded only if a module imports them. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+      "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js"
+    }
+  }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <header class="site-header wrap">
+    <div class="brand">
+      <h1 class="wordmark">Bara</h1>
+      <p class="slogan">Watch. Warn. Protect.</p>
+    </div>
+    <p id="mode-badge" class="mode-badge" role="status" hidden></p>
+  </header>
+
+  <section id="controls" class="controls-bar wrap" aria-label="Area and dates">
+    <p class="panel-placeholder">Loading area and date controls.</p>
+  </section>
+
+  <div class="wrap">
+    <div id="app-error" class="app-error" role="alert" hidden></div>
+
+    <main class="layout">
+      <section id="map" class="panel panel-map" aria-label="Map of observed hotspots">
+        <p class="panel-placeholder">Loading the hotspot map.</p>
+      </section>
+
+      <section id="status" class="panel panel-status" aria-label="Selected month compared with normal" aria-live="polite">
+        <p class="panel-placeholder">Loading the selected month.</p>
+      </section>
+
+      <section id="calendar" class="panel panel-calendar" aria-label="Hotspot calendar">
+        <p class="panel-placeholder">Loading the calendar.</p>
+      </section>
+
+      <section id="proof" class="panel panel-proof" aria-label="Raw and harmonized sensor counts">
+        <p class="panel-placeholder">Loading the sensor comparison.</p>
+      </section>
+
+      <section id="export" class="panel panel-export" aria-label="Download data">
+        <p class="panel-placeholder">Loading downloads.</p>
+      </section>
+
+      <section id="about" class="panel panel-about" aria-label="About the data and method">
+        <p class="panel-placeholder">Loading notes about the data.</p>
+      </section>
+    </main>
+  </div>
+
+  <noscript>
+    <p class="wrap">Bara needs JavaScript to show the calendar, map and charts.</p>
+  </noscript>
+</body>
+</html>

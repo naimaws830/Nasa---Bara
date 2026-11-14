@@ -1,0 +1,8 @@
+# Secrets and local data (never commit)
+.env
+pipeline/.env
+pipeline/.venv/
+pipeline/raw/
+pipeline/work/
+__pycache__/
+.pytest_cache/

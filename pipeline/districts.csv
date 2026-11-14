@@ -1,0 +1,21 @@
+# District to division lookup for Sarawak. Owner A must check every row against an official
+# Sarawak government list and set verified=yes only after checking. Unverified rows are not
+# exported unless export.py runs with --allow-unverified (development only).
+# district_name must match the geoBoundaries ADM2 shapeName printed by acquire.py
+# (pipeline/raw/boundaries/district_names.txt). Matching ignores case.
+district_name,district_id,division_id,division_name,verified,source
+Mukah,dist:mukah,div:mukah,Mukah,no,to verify
+Dalat,dist:dalat,div:mukah,Mukah,no,to verify
+Daro,dist:daro,div:mukah,Mukah,no,to verify
+Matu,dist:matu,div:mukah,Mukah,no,to verify
+Tanjung Manis,dist:tanjung-manis,div:mukah,Mukah,no,to verify
+Sibu,dist:sibu,div:sibu,Sibu,no,to verify
+Kanowit,dist:kanowit,div:sibu,Sibu,no,to verify
+Selangau,dist:selangau,div:sibu,Sibu,no,to verify
+Bintulu,dist:bintulu,div:bintulu,Bintulu,no,to verify
+Tatau,dist:tatau,div:bintulu,Bintulu,no,to verify
+Sebauh,dist:sebauh,div:bintulu,Bintulu,no,to verify
+Sarikei,dist:sarikei,div:sarikei,Sarikei,no,to verify
+Meradong,dist:meradong,div:sarikei,Sarikei,no,to verify
+Julau,dist:julau,div:sarikei,Sarikei,no,to verify
+Pakan,dist:pakan,div:sarikei,Sarikei,no,to verify

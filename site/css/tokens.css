@@ -1,0 +1,42 @@
+/* Bara design tokens: "seen through the haze". Owned by C (C1). Others read only. */
+
+:root {
+  /* Colours */
+  --haze: #E3E5DF;        /* background and atmosphere */
+  --haze-deep: #D2D5CC;   /* secondary surface, empty cells, separator lines */
+  --peat: #2A221B;        /* primary text */
+  --peat-soft: #6B6158;   /* secondary text, axis labels */
+  --blackwater: #24474A;  /* actions and focus */
+  --rain: #5C7F99;        /* optional rainfall only */
+
+  /* Hotspot quantity bins only: light = few, dark = many */
+  --fire-1: #F1E3B5;
+  --fire-2: #EDC27A;
+  --fire-3: #E3913F;
+  --fire-4: #C9592A;
+  --fire-5: #9B2F1C;
+  --fire-6: #5E1A12;
+
+  /* Spacing */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* Type: Archivo when available, system fallback */
+  --font-body: 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text-min: 12px;
+  --text-small: 13px;
+  --text-body: 15px;
+  --line-body: 1.5;
+  --text-heading: 18px;
+  --text-wordmark: 28px;
+  --text-number: clamp(48px, 3vw + 28px, 64px);
+
+  /* Shape: square panels; 4px radius on form inputs only */
+  --radius-input: 4px;
+}
