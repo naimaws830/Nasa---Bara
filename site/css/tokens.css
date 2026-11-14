@@ -9,6 +9,24 @@
   --blackwater: #24474A;  /* actions and focus */
   --rain: #5C7F99;        /* optional rainfall only */
 
+  /* Surfaces and lines (same warm-grey family as --haze) */
+  --surface: #EEF0EB;      /* panels and toolbars, one step lighter than the page */
+  --surface-sunk: #D9DDD3; /* pressed / selected segments, map sea edge */
+  --line: #CBD0C4;         /* 1px panel borders and separators */
+  --line-strong: #8E968A;  /* input borders */
+  --land-select: #C2CBBF;  /* highlighted area on the map */
+  --blackwater-soft: #DCE6E4; /* selected-state tint of --blackwater */
+
+  /* Chart series (proof chart). Checked with the dataviz palette validator on --surface:
+     lightness, chroma, colour-blind separation and contrast all pass. MODIS is also dashed. */
+  --series-modis: #A87A12;
+  --series-viirs: #1F6FB0;
+  --series-harmonized: #B23A22;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 150ms;
+
   /* Hotspot quantity bins only: light = few, dark = many */
   --fire-1: #F1E3B5;
   --fire-2: #EDC27A;

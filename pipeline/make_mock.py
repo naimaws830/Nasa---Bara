@@ -17,6 +17,7 @@ from __future__ import annotations
 import shutil
 
 import numpy as np
+import shapely
 import pandas as pd
 from shapely.geometry import box
 
@@ -110,7 +111,8 @@ def build_files(seed: int = SEED):
     monthly = monthly_counts(clean, combined_coverage(SOURCE_COV), table, "2001-01")
     harmonized, report = harmonize(monthly, table)
     files = build_outputs(harmonized=harmonized, report=report, clean=clean, source_cov=SOURCE_COV, table=table,
-                          district_features=districts, mode="mock", allow_unverified=False, source_label=LABEL)
+                          district_features=districts, mode="mock", allow_unverified=False, source_label=LABEL,
+                          outline=shapely.union_all([d["geometry"] for d in districts]).buffer(0.05))
     return files, audit, report
 
 

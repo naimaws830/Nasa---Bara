@@ -215,6 +215,8 @@ def check_geojson(c: Checker, meta):
         if not {"id", "name", "division"} <= set(props):
             c.err(rel, f"feature properties {props} need id, name, division")
             continue
+        if props["id"] != "sarawak" and props["id"] not in district_ids:
+            c.err(rel, f"{props['id']} is not an exported district (only districts and the 'sarawak' outline belong here)")
         seen.add(props["id"])
         geom = f.get("geometry") or {}
         if geom.get("type") not in ("Polygon", "MultiPolygon"):

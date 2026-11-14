@@ -21,37 +21,44 @@ export async function mount(root) {
   const meta = await loadMeta();
   const { start, end } = getBounds();
 
+  const chevron = (d) => `<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>`;
   root.innerHTML = `
-    <form class="controls-form" novalidate>
-      <div class="field">
-        <label for="ctl-area">Area</label>
-        <select id="ctl-area"></select>
-      </div>
-      <div class="field">
-        <label for="ctl-start">From</label>
-        <input type="month" id="ctl-start" min="${start}" max="${end}" placeholder="YYYY-MM" pattern="\\d{4}-\\d{2}" required>
-      </div>
-      <div class="field">
-        <label for="ctl-end">To</label>
-        <input type="month" id="ctl-end" min="${start}" max="${end}" placeholder="YYYY-MM" pattern="\\d{4}-\\d{2}" required>
-      </div>
-      <div class="field">
-        <label for="ctl-month">Selected month</label>
-        <div class="stepper">
-          <button type="button" class="button" id="ctl-prev" aria-label="Previous month">Previous</button>
-          <input type="month" id="ctl-month" placeholder="YYYY-MM" pattern="\\d{4}-\\d{2}" required>
-          <button type="button" class="button" id="ctl-next" aria-label="Next month">Next</button>
+    <div class="toolbar-card">
+      <form class="toolbar" novalidate>
+        <div class="field field-area">
+          <label for="ctl-area">Area</label>
+          <select id="ctl-area"></select>
         </div>
+        <fieldset class="field field-range">
+          <legend>Date range</legend>
+          <div class="range-pair">
+            <label class="range-part"><span class="range-label">From</span>
+              <input type="month" id="ctl-start" min="${start}" max="${end}" placeholder="YYYY-MM" pattern="\\d{4}-\\d{2}" required></label>
+            <span class="range-sep" aria-hidden="true"></span>
+            <label class="range-part"><span class="range-label">To</span>
+              <input type="month" id="ctl-end" min="${start}" max="${end}" placeholder="YYYY-MM" pattern="\\d{4}-\\d{2}" required></label>
+          </div>
+        </fieldset>
+        <div class="field field-month">
+          <label for="ctl-month">Selected month</label>
+          <div class="stepper">
+            <button type="button" class="icon-btn" id="ctl-prev" aria-label="Previous month">${chevron('M12 4l-6 6 6 6')}</button>
+            <input type="month" id="ctl-month" placeholder="YYYY-MM" pattern="\\d{4}-\\d{2}" required>
+            <button type="button" class="icon-btn" id="ctl-next" aria-label="Next month">${chevron('M8 4l6 6-6 6')}</button>
+          </div>
+        </div>
+        <fieldset class="field field-series">
+          <legend>Series</legend>
+          <div class="seg">
+            ${SENSOR_VIEWS.map((v) => `
+              <label class="seg-opt"><input type="radio" name="ctl-view" value="${v}"><span>${VIEW_LABELS[v]}</span></label>`).join('')}
+          </div>
+        </fieldset>
+      </form>
+      <div class="controls-messages">
+        <p class="controls-error" id="ctl-error" role="alert"></p>
+        <p class="controls-note" id="ctl-note" aria-live="polite"></p>
       </div>
-      <fieldset class="field segmented">
-        <legend>Series</legend>
-        ${SENSOR_VIEWS.map((v) => `
-          <label><input type="radio" name="ctl-view" value="${v}"> ${VIEW_LABELS[v]}</label>`).join('')}
-      </fieldset>
-    </form>
-    <div class="controls-messages">
-      <p class="controls-error" id="ctl-error" role="alert"></p>
-      <p class="controls-note" id="ctl-note" aria-live="polite"></p>
     </div>`;
 
   const $ = (id) => root.querySelector(`#${id}`);

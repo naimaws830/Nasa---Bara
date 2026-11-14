@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-14T12:50:52Z",
+  "generatedAt": "2026-11-14T12:57:31Z",
   "mode": "real",
   "files": [
     {
       "path": "areas.geojson",
-      "bytes": 52092,
-      "sha256": "9c09be825023da8cbdfedd40dea79b83788cf669fa17aa21435f5404d9b91e11",
+      "bytes": 77793,
+      "sha256": "ab3a18f1497869a62321a9f2c91f97aa5ec344f686b94b61e7ff8e8654719488",
       "coverage": null
     },
     {
@@ -431,7 +431,7 @@
     {
       "path": "meta.json",
       "bytes": 3361,
-      "sha256": "1e1bc2448905fc36ad6e10397991128a940c2b7632842279b1b140cc8f6c7a38",
+      "sha256": "86ef964a1aaa7a7f92fe30f21e6c6445696f1e1cc4c543c837458ec6b8ba0fff",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"

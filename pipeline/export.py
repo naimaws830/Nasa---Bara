@@ -148,9 +148,16 @@ def _round_coords(obj, digits=4):
     return obj
 
 
-def build_areas_geojson(areas: list[dict], district_features: list[dict]) -> dict:
+def build_areas_geojson(areas: list[dict], district_features: list[dict], outline=None) -> dict:
+    """Exported district polygons, plus (when given) the Sarawak state outline as the first feature with
+    id "sarawak" and division null, so the map can draw land outside the exported districts."""
     wanted = {a["id"]: a for a in areas if a["type"] == "district"}
     feats = [d for d in district_features if d["id"] in wanted]
+    if outline is not None:
+        wanted = {**wanted, "sarawak": {"division": None}}
+        # ~300 m detail is plenty for a state outline drawn behind the districts.
+        outline = shapely.simplify(outline, 0.003, preserve_topology=True)
+        feats = [{"id": "sarawak", "name": "Sarawak", "geometry": outline}] + feats
     for tol in (0.0, 0.0005, 0.001, 0.002, 0.004, 0.008, 0.016):
         out = {"type": "FeatureCollection", "features": []}
         for d in feats:
@@ -175,7 +182,7 @@ def sensor_products(source_cov: dict, raw_manifest: dict) -> list[dict]:
 
 
 def build_outputs(*, harmonized, report, clean, source_cov, table, district_features, mode, allow_unverified,
-                  source_label, raw_manifest=None, default_area="div:mukah") -> dict[str, object]:
+                  source_label, raw_manifest=None, default_area="div:mukah", outline=None) -> dict[str, object]:
     areas = exported_areas(table, allow_unverified)
     ids = {a["id"] for a in areas}
     if default_area not in ids:
@@ -194,7 +201,7 @@ def build_outputs(*, harmonized, report, clean, source_cov, table, district_feat
         "sensorProducts": sensor_products(source_cov, raw_manifest or {}),
         "methodVersion": report["methodVersion"],
     }
-    files["areas.geojson"] = build_areas_geojson(areas, district_features)
+    files["areas.geojson"] = build_areas_geojson(areas, district_features, outline)
     for a in areas:
         files[f"calendar/{area_file(a['id'])}"] = build_calendar(a, harmonized, months)
     for year, obj in build_maps(clean, harmonized, months).items():
@@ -352,7 +359,7 @@ def main():
 
     from clean import load_geography
     table = load_district_table()
-    _, districts = load_geography(table)
+    adm1, districts = load_geography(table)
     cov = read_json(WORK / "coverage.json")
     raw_manifest = read_json(RAW / "manifest.json") if (RAW / "manifest.json").exists() else {}
     clean = pd.read_parquet(WORK / "hotspots_clean.parquet")
@@ -360,7 +367,7 @@ def main():
                           report=read_json(WORK / "harmonize.json"), clean=clean, source_cov=cov["sources"],
                           table=table, district_features=districts, mode="real",
                           allow_unverified=args.allow_unverified, source_label="NASA FIRMS",
-                          raw_manifest=raw_manifest)
+                          raw_manifest=raw_manifest, outline=adm1)
     if args.allow_unverified:
         print("WARNING: unverified districts are included (meta.areas[].verified = false). Do not ship this.")
     write_outputs(files, args.out)
