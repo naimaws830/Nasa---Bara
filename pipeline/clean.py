@@ -233,6 +233,16 @@ def empty_clean() -> pd.DataFrame:
         "areaId": object, "divisionId": object}.items()})
 
 
+def cleaning_rules() -> dict:
+    """The filter settings, recorded next to the counts so the site can show them without hard-coding."""
+    return {
+        "modis_min_confidence": MODIS_MIN_CONFIDENCE,
+        "viirs_keep_confidence": sorted(VIIRS_KEEP_CONFIDENCE),
+        "type_kept": 0,
+        "duplicate_key": ["sensor", "satellite", "acq_date", "acq_time", "latitude", "longitude"],
+    }
+
+
 def print_audit(audit: dict) -> None:
     rows = ["loaded"] + STEPS + ["kept", "no_district"]
     print(f"{'step':22s}" + "".join(f"{s:>10s}" for s in SENSORS))
@@ -258,12 +268,8 @@ def main():
     WORK.mkdir(parents=True, exist_ok=True)
     clean.to_parquet(WORK / "hotspots_clean.parquet", index=False)
     write_json(WORK / "coverage.json", {"sensors": coverage, "sources": source_cov}, pretty=True)
-    write_json(WORK / "audit_clean.json", {"rules": {
-        "modis_min_confidence": MODIS_MIN_CONFIDENCE,
-        "viirs_keep_confidence": sorted(VIIRS_KEEP_CONFIDENCE),
-        "type_kept": 0,
-        "duplicate_key": ["sensor", "satellite", "acq_date", "acq_time", "latitude", "longitude"],
-    }, "counts": audit, "coverage": coverage}, pretty=True)
+    write_json(WORK / "audit_clean.json", {"rules": cleaning_rules(), "counts": audit, "coverage": coverage},
+               pretty=True)
     print_audit(audit)
     for s, c in coverage.items():
         print(f"{s} coverage: {c['start']} to {c['end']}")

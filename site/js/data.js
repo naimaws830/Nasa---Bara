@@ -56,6 +56,11 @@ export async function loadHarmonize() {
   return cached('harmonize.json', () => fetchJSON('harmonize.json'));
 }
 
+/** Address of a published data file (for download links). Respects ?mock=1. Does not fetch. */
+export function dataURL(file) {
+  return new URL(file, BASE).href;
+}
+
 function checkMeta(meta) {
   const name = `${FOLDER}meta.json`;
   const expected = isMock ? 'mock' : 'real';

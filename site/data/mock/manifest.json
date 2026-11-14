@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T14:17:38Z",
+  "generatedAt": "2026-11-14T14:23:28Z",
   "mode": "mock",
   "files": [
     {
@@ -340,8 +340,8 @@
     },
     {
       "path": "meta.json",
-      "bytes": 1968,
-      "sha256": "59578256d2e2b7b0e47882a3d332d6a6343929661f2a2a46d49d0b6a70e68c74",
+      "bytes": 2552,
+      "sha256": "9be8dd16c899cf85ee285a340b3f07cd55acc73271a965d7cd5e927a66c05ab6",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"

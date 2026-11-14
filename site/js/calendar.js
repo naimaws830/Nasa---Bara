@@ -3,6 +3,7 @@
 // Click or keyboard (arrows, Home/End, Page Up/Down, Enter) selects a month for the map and status panels.
 
 import { getState, setState, subscribe } from './store.js';
+import { addInfo } from './ui.js';
 import { loadCalendar, loadMeta } from './data.js';
 import {
   MONTH_SHORT, VIEW_NAME, calendarEdges, edgeBin, edgeLabels, fireStep, fmtCount, monthLabel, valuesFor,
@@ -15,18 +16,26 @@ export async function mount(root) {
   root.innerHTML = `
     <header class="panel-head">
       <div class="panel-title">
-        <p class="eyebrow" id="cal-eyebrow">Monthly calendar</p>
-        <h2 class="panel-heading" id="cal-title">Hotspot calendar</h2>
+        <p class="eyebrow" id="cal-eyebrow">Calendar</p>
+        <h2 class="panel-heading" id="cal-title">Hotspots month by month</h2>
       </div>
-      <p class="small-text cal-howto">Pick a month: click it, or use the arrow keys and Enter.</p>
+      <p class="small-text cal-howto">Each box is one month. Darker = more hotspots. Click a box to see that month.</p>
     </header>
     <div class="cal-scroll">
       <div class="cal-grid" id="cal-grid" role="grid" aria-labelledby="cal-title"></div>
     </div>
     <p class="cal-detail" id="cal-detail" aria-live="polite"></p>
     <div class="cal-legend" id="cal-legend"></div>`;
+  const info = addInfo(root, 'How to read the calendar', `
+    <p>Rows are years (newest at the top), columns are months. The number in each box is how many hotspots
+      satellites saw that month. Darker boxes had more.</p>
+    <p><strong>Striped box</strong>: no full satellite record that month. <strong>0</strong>: the satellite was watching and saw none.</p>
+    <p><strong>Small triangle</strong> (top right): an estimate, because the newer satellite only started in 2012.</p>
+    <p><strong>Small square</strong> (top left): a month that was much busier than that month usually is.</p>
+    <p class="cal-anom-note"></p>
+    <p>Keyboard: arrow keys move between months, Enter picks one.</p>`);
   ui = {
-    root, meta,
+    root, meta, info,
     grid: root.querySelector('#cal-grid'),
     detail: root.querySelector('#cal-detail'),
     legend: root.querySelector('#cal-legend'),
@@ -79,8 +88,8 @@ async function render() {
   const edges = calendarEdges(values.filter((_, i) => inRange[i]));
   ui.edges = edges;
 
-  ui.title.textContent = `Hotspot calendar, ${cal.name}`;
-  ui.eyebrow.textContent = `${VIEW_NAME[s.sensorView]} monthly counts`;
+  ui.title.textContent = `Hotspots month by month, ${cal.name}`;
+  ui.eyebrow.textContent = s.sensorView === 'harmonized' ? 'Calendar' : `Calendar, ${VIEW_NAME[s.sensorView]} only`;
 
   const firstYear = Number(s.startMonth.slice(0, 4));
   const lastYear = Number(s.endMonth.slice(0, 4));
@@ -176,9 +185,13 @@ function showDetail(month) {
     return;
   }
   const h = cal.harmonizedCount[i];
-  const raw = `raw MODIS ${fmtCount(cal.rawModisCount[i]) ?? 'no data'}, raw VIIRS ${fmtCount(cal.rawViirsCount[i]) ?? 'no data'}`;
-  const how = cal.status[i] === 'estimated' ? 'estimated from MODIS' : cal.status[i] === 'observed' ? 'observed by VIIRS' : 'no data';
-  ui.detail.textContent = `${monthLabel(month)}: harmonized ${fmtCount(h) ?? 'no data'} (${how}); ${raw}.`;
+  if (h == null) {
+    ui.detail.textContent = `${monthLabel(month)}: no data.`;
+    return;
+  }
+  const how = cal.status[i] === 'estimated' ? 'an estimate' : 'counted by the newer satellite';
+  const n = Math.round(h);
+  ui.detail.textContent = `${monthLabel(month)}: ${fmtCount(h)} hotspot${n === 1 ? '' : 's'} (${how}).`;
 }
 
 function markSelected() {
@@ -232,14 +245,36 @@ function renderLegend(edges, view) {
   const labels = edgeLabels(edges);
   const sw = labels.map((l, b) => `<li><span class="cal-swatch" data-step="${fireStep(b, edges)}"></span>${l}</li>`).join('');
   const marks = view === 'harmonized'
-    ? `<li><span class="cal-swatch cal-swatch-est"></span>Estimated from MODIS (before VIIRS)</li>
-       <li><span class="cal-swatch cal-swatch-unusual"></span>Unusually high (anomaly score 2 or more)</li>`
+    ? `<li><span class="cal-swatch cal-swatch-est"></span>Estimate (before 2012)</li>
+       <li><span class="cal-swatch cal-swatch-unusual"></span>Much busier than usual</li>`
     : '';
   ui.legend.innerHTML = `
-    <p class="legend-title">Hotspot detections per month</p>
+    <p class="legend-title">Hotspots per month</p>
     <ul>${sw}
-      <li><span class="cal-swatch" data-state="zero"></span>0, sensor covered the month and saw none</li>
-      <li><span class="cal-swatch" data-state="missing"></span>No data, sensor did not cover the whole month</li>
+      <li><span class="cal-swatch" data-state="zero"></span>None seen</li>
+      <li><span class="cal-swatch" data-state="missing"></span>No data</li>
       ${marks}
-    </ul>`;
+    </ul>
+    `;
+  const note = ui.info.querySelector('.cal-anom-note');
+  note.textContent = view === 'harmonized' ? unusualNote() : '';
+  note.hidden = view !== 'harmonized';
+}
+
+/** Explains how many months are flagged and when, from the data, so a cluster of dots is not misread. */
+function unusualNote() {
+  const { cal } = ui;
+  const s = getState();
+  const idx = cal.months.map((m, i) => i).filter((i) => cal.months[i] >= s.startMonth && cal.months[i] <= s.endMonth);
+  const flagged = idx.filter((i) => cal.anomalyScore[i] != null && cal.anomalyScore[i] >= 2);
+  const [y0, y1] = cal.reference.completeYears;
+  if (!flagged.length) return `None of the months you picked was much busier than usual (compared with ${y0} to ${y1}).`;
+  const years = flagged.map((i) => Number(cal.months[i].slice(0, 4))).sort((a, b) => a - b);
+  const mid = years[Math.floor(years.length / 2)];
+  const early = flagged.filter((i) => cal.status[i] === 'estimated').length;
+  let text = `${flagged.length} of the ${idx.length} months you picked were much busier than usual (compared with ${y0} to ${y1}); half of them were in ${mid} or earlier.`;
+  if (early / flagged.length > 0.5) {
+    text += " Fires were far more common before 2012, so many older months stand out next to today's quieter years.";
+  }
+  return text;
 }

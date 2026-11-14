@@ -14,7 +14,6 @@ const MODULES = [
   { path: './calendar.js', selector: '#calendar' },
   { path: './proof.js', selector: '#proof' },
   { path: './export.js', selector: '#export' },
-  { path: './about.js', selector: '#about' },
 ];
 
 const DEBUG = isMock || new URLSearchParams(window.location.search).get('debug') === '1';

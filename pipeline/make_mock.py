@@ -22,7 +22,7 @@ import pandas as pd
 from shapely.geometry import box
 
 from aggregate import monthly_counts
-from clean import clean_observations, combined_coverage
+from clean import cleaning_rules, clean_observations, combined_coverage
 from common import BBOX, SITE_DATA, month_first_last, month_range, run_main
 from export import build_outputs, write_outputs
 from harmonize import harmonize
@@ -112,7 +112,8 @@ def build_files(seed: int = SEED):
     harmonized, report = harmonize(monthly, table)
     files = build_outputs(harmonized=harmonized, report=report, clean=clean, source_cov=SOURCE_COV, table=table,
                           district_features=districts, mode="mock", allow_unverified=False, source_label=LABEL,
-                          outline=shapely.union_all([d["geometry"] for d in districts]).buffer(0.05))
+                          outline=shapely.union_all([d["geometry"] for d in districts]).buffer(0.05),
+                          audit={"rules": cleaning_rules(), "counts": audit})
     return files, audit, report
 
 

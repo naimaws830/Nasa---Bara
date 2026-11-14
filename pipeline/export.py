@@ -182,7 +182,8 @@ def sensor_products(source_cov: dict, raw_manifest: dict) -> list[dict]:
 
 
 def build_outputs(*, harmonized, report, clean, source_cov, table, district_features, mode, allow_unverified,
-                  source_label, raw_manifest=None, default_area="div:mukah", outline=None) -> dict[str, object]:
+                  source_label, raw_manifest=None, default_area="div:mukah", outline=None,
+                  audit=None) -> dict[str, object]:
     areas = exported_areas(table, allow_unverified)
     ids = {a["id"] for a in areas}
     if default_area not in ids:
@@ -201,6 +202,8 @@ def build_outputs(*, harmonized, report, clean, source_cov, table, district_feat
         "sensorProducts": sensor_products(source_cov, raw_manifest or {}),
         "methodVersion": report["methodVersion"],
     }
+    if audit:  # cleaning rules and row counts, shown by the About panel (optional key)
+        files["meta.json"]["cleaning"] = {"rules": audit.get("rules", {}), "counts": audit.get("counts", {})}
     files["areas.geojson"] = build_areas_geojson(areas, district_features, outline)
     for a in areas:
         files[f"calendar/{area_file(a['id'])}"] = build_calendar(a, harmonized, months)
@@ -369,7 +372,7 @@ def main():
                           report=read_json(WORK / "harmonize.json"), clean=clean, source_cov=cov["sources"],
                           table=table, district_features=districts, mode="real",
                           allow_unverified=args.allow_unverified, source_label="NASA FIRMS",
-                          raw_manifest=raw_manifest, outline=adm1)
+                          raw_manifest=raw_manifest, outline=adm1, audit=read_json(WORK / "audit_clean.json"))
     if args.allow_unverified:
         print("WARNING: unverified districts are included (meta.areas[].verified = false). Do not ship this.")
     write_outputs(files, args.out)

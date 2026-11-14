@@ -112,6 +112,109 @@ export function compareText(value, median, month) {
   return `Below the usual ${name}: ${Math.round(r * 100)}% of the median (${fmtCount(median)}).`;
 }
 
+/**
+ * Simple level of a month against its usual value, for people who don't read statistics.
+ * Returns { key, word } or null. Thresholds match compareText (within 25% = normal).
+ */
+export function levelOf(value, median) {
+  if (value == null || median == null) return null;
+  if (median === 0) return value === 0 ? { key: 'normal', word: 'Normal' } : { key: 'higher', word: 'Higher than normal' };
+  const r = value / median;
+  if (r < 0.75) return { key: 'lower', word: 'Lower than normal' };
+  if (r <= 1.25) return { key: 'normal', word: 'Normal' };
+  if (r < 2) return { key: 'higher', word: 'Higher than normal' };
+  return { key: 'much', word: 'Much higher than normal' };
+}
+
+/** One or two everyday sentences about a month. No statistics words. */
+export function plainSummary({ area, month, value, median, status, provisional }) {
+  const name = monthName(month);
+  if (value == null) return [`There is no full satellite record for ${area} in ${monthLabel(month)}.`];
+  const n = Math.round(value);
+  const out = [`Satellites spotted ${n.toLocaleString('en-GB')} hotspot${n === 1 ? '' : 's'} in ${area} in ${monthLabel(month)}.`];
+  const lvl = levelOf(value, median);
+  if (lvl) {
+    const usual = `a normal ${name} has about ${fmtCount(median)}`;
+    const phrase = {
+      lower: `That is fewer than usual (${usual}).`,
+      normal: `That is about normal (${usual}).`,
+      higher: `That is more than usual (${usual}).`,
+      much: `That is ${value / Math.max(median, 1e-9) >= 10 ? 'many' : `about ${Math.round(value / median)}`} times more than usual (${usual}).`,
+    }[lvl.key];
+    out.push(phrase);
+  }
+  if (status === 'estimated') out.push('This is an estimate, because the newer satellite only started in 2012.');
+  if (provisional) out.push('Recent numbers may still change slightly.');
+  return out;
+}
+
+// ---------- Preparedness (history-based, never a live alert) ----------
+
+export const APIMS_URL = 'https://eqms.doe.gov.my/APIMS/main';
+
+/**
+ * Usual fire season of an area from its own history: median harmonized count per calendar month over the
+ * complete reference years; the season is the run of months around the busiest one whose median is at least
+ * `share` of the peak. Returns null when hotspots are too rare to speak of a season (peak median < minPeak).
+ */
+export function fireSeason(cal, { share = 0.25, minPeak = 3 } = {}) {
+  const [y0, y1] = cal.reference.completeYears;
+  const med = [];
+  for (let mm = 1; mm <= 12; mm++) {
+    const v = [];
+    cal.months.forEach((m, i) => {
+      const y = Number(m.slice(0, 4));
+      if (Number(m.slice(5, 7)) === mm && y >= y0 && y <= y1 && cal.harmonizedCount[i] != null) v.push(cal.harmonizedCount[i]);
+    });
+    v.sort((a, b) => a - b);
+    med.push(v.length ? (v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2) : 0);
+  }
+  const peakIdx = med.indexOf(Math.max(...med));
+  const peak = med[peakIdx];
+  if (peak < minPeak) return null;
+  const inSeason = med.map((v) => v >= share * peak);
+  let start = peakIdx;
+  let end = peakIdx;
+  for (let k = 0; k < 11 && inSeason[(start + 11) % 12] && (start + 11) % 12 !== end; k++) start = (start + 11) % 12;
+  for (let k = 0; k < 11 && inSeason[(end + 1) % 12] && (end + 1) % 12 !== start; k++) end = (end + 1) % 12;
+  const months = [];
+  for (let k = start; ; k = (k + 1) % 12) { months.push(k + 1); if (k === end) break; }
+  return { start: start + 1, end: end + 1, peak: peakIdx + 1, months, medians: med };
+}
+
+function monthsUntil(from, to) {
+  return (to - from + 12) % 12;
+}
+
+/**
+ * Preparedness notes for a month of the year (`nowMonth`, 1-12) given an area's season.
+ * Returns { phase: 'in' | 'soon' | 'quiet', lines: [...], checklist: boolean }. Plain words, no alarm.
+ */
+export function preparedness(season, nowMonth, { area, busier = false, selectedLabel = '' } = {}) {
+  const lines = [];
+  let phase = 'quiet';
+  if (season) {
+    const name = (m) => MONTH_NAMES[m - 1];
+    const range = season.start === season.end ? name(season.start) : `${name(season.start)} to ${name(season.end)}`;
+    lines.push(`In ${area}, fire season usually runs ${range}, busiest in ${name(season.peak)}.`);
+    if (season.months.includes(nowMonth)) {
+      phase = 'in';
+      lines.push(`It is ${name(nowMonth)} now, which is usually part of fire season.`);
+    } else if (monthsUntil(nowMonth, season.start) <= 2) {
+      phase = 'soon';
+      lines.push(`Fire season usually starts in ${name(season.start)}, so now is a good time to prepare.`);
+    } else {
+      lines.push(`${name(nowMonth)} is usually a quiet month for fires here.`);
+    }
+  } else {
+    lines.push(`Hotspots are rare in ${area}.`);
+  }
+  if (busier) {
+    lines.push(`${selectedLabel || 'The month you picked'} was busier than usual. Fires nearby can bring haze.`);
+  }
+  return { phase, lines, checklist: phase !== 'quiet' || busier };
+}
+
 /** Descriptive anomaly wording. Never a warning: this is history, not a forecast. */
 export function anomalyText(score, month) {
   const name = monthName(month);

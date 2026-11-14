@@ -16,6 +16,7 @@
 import { getState, subscribe } from './store.js';
 import { loadAreas, loadMap, loadMeta } from './data.js';
 import { monthLabel } from './controls.js';
+import { addInfo } from './ui.js';
 
 // ---------- Pure helpers ----------
 
@@ -58,6 +59,23 @@ export function areaAt(lon, lat, geojson) {
     inState = true;
   }
   return inState ? 'sarawak' : null;
+}
+
+/**
+ * Area of a 0.05-degree square: the area containing its centre; if the centre is outside every polygon (sea,
+ * river mouth), the area most of its corners and edge midpoints fall in. Keeps coastal squares in their district.
+ */
+export function squareAreaAt(lon, lat, geojson, half = CELL * 0.48) {
+  const centre = areaAt(lon, lat, geojson);
+  if (centre) return centre;
+  const votes = new Map();
+  for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, -1], [0, 1], [-1, 0], [1, 0]]) {
+    const a = areaAt(lon + dx * half, lat + dy * half, geojson);
+    if (a) votes.set(a, (votes.get(a) || 0) + 1);
+  }
+  let best = null;
+  for (const [a, n] of votes) if (!best || n > best[1]) best = [a, n];
+  return best ? best[0] : null;
 }
 
 /** Does a square whose centre is in district `districtId` belong to the selected area? */
@@ -198,8 +216,8 @@ export async function mount(root) {
   root.innerHTML = `
     <header class="panel-head">
       <div class="panel-title">
-        <p class="eyebrow">Observed detections</p>
-        <h2 class="panel-heading" id="map-title">Where hotspots were detected</h2>
+        <p class="eyebrow">Map</p>
+        <h2 class="panel-heading" id="map-title">Where were the hotspots?</h2>
       </div>
       <div class="panel-tools">
         <fieldset class="seg">
@@ -215,10 +233,10 @@ export async function mount(root) {
       </div>
     </header>
     <dl class="map-facts" id="map-facts">
-      <div><dt>Sensor</dt><dd id="map-fact-sensor">-</dd></div>
-      <div><dt>Period</dt><dd id="map-fact-period">-</dd></div>
-      <div><dt>Detections in Sarawak</dt><dd id="map-fact-total">-</dd></div>
-      <div><dt>Squares with detections</dt><dd id="map-fact-cells">-</dd></div>
+      <div><dt>Showing</dt><dd id="map-fact-period">-</dd></div>
+      <div><dt>Hotspots in Sarawak</dt><dd id="map-fact-total">-</dd></div>
+      <div><dt>Places with hotspots</dt><dd id="map-fact-cells">-</dd></div>
+      <div><dt>Seen by</dt><dd id="map-fact-sensor">-</dd></div>
     </dl>
     <div class="map-stage" id="map-stage">
       <div class="map-zoom" role="group" aria-label="Zoom">
@@ -233,14 +251,20 @@ export async function mount(root) {
     <div class="map-foot">
       <div class="map-legend" id="map-legend" aria-label="Colour key"></div>
       <details class="map-top">
-        <summary>Busiest squares in the highlighted area</summary>
+        <summary>Busiest places in your area</summary>
         <ol id="map-top-list"></ol>
       </details>
     </div>
-    <p class="map-hint small-text" id="map-hint"></p>
-    <p class="small-text map-note">Each square counts satellite hotspot detections, not confirmed fires.
-      One fire can be detected several times and some fires are missed under cloud.
-      Boundaries: geoBoundaries. Detections: NASA FIRMS.</p>`;
+    <p class="map-hint small-text" id="map-hint"></p>`;
+  addInfo(root, 'How to read this map', `
+    <p>Each coloured square is an area about 5 km wide where satellites saw hotspots. <strong>Darker = more hotspots.</strong>
+      The area you picked is outlined; everything else is faded.</p>
+    <p>A hotspot is a spot of unusual heat seen from space, almost always a fire. One fire can be seen more than once,
+      and fires under thick cloud can be missed.</p>
+    <p>The map shows what a satellite actually saw: the newer satellite (VIIRS) from 2012, the older one (MODIS) before that.
+      The adjusted numbers used elsewhere are totals for an area, so they cannot be put on a map.</p>
+    <p><strong>Moving around:</strong> drag the map; zoom with the + and - buttons, a pinch, or Ctrl + scroll.
+      Tap or hover a square for its details. With the map selected, arrow keys move it and Enter shows the square in the middle.</p>`);
 
   const $ = (id) => root.querySelector(`#${id}`);
   const divisionOf = new Map(areas.features.filter((f) => f.properties.division)
@@ -333,7 +357,7 @@ async function refreshData() {
   ctx.cells = collectCells(ctx.byMonth, months, sensor);
   ctx.cellIndex = new Map(ctx.cells.map((c) => [c.key, c]));
   for (const c of ctx.cells) {
-    if (!ctx.districtOfCell.has(c.key)) ctx.districtOfCell.set(c.key, areaAt(c.lon, c.lat, ctx.areas));
+    if (!ctx.districtOfCell.has(c.key)) ctx.districtOfCell.set(c.key, squareAreaAt(c.lon, c.lat, ctx.areas));
     c.district = ctx.districtOfCell.get(c.key);
   }
   const max = ctx.cells.reduce((a, c) => Math.max(a, c.count), 0);
@@ -366,6 +390,10 @@ function sensorName(sensor) {
   return sensor === 'VIIRS' ? 'VIIRS' : 'MODIS';
 }
 
+function sensorPlain(sensor) {
+  return sensor === 'VIIRS' ? 'Newer satellite (VIIRS)' : 'Older satellite (MODIS)';
+}
+
 function updateSummary() {
   const s = getState();
   const total = ctx.cells.reduce((a, c) => a + c.count, 0);
@@ -374,21 +402,18 @@ function updateSummary() {
   const has = ctx.months?.length > 0;
   const wanted = ctx.wanted || [];
 
-  ctx.facts.sensor.textContent = sensorName(ctx.sensor);
+  ctx.facts.sensor.textContent = sensorPlain(ctx.sensor);
   ctx.facts.period.textContent = has ? periodText(ctx.months) : periodText(wanted);
   ctx.facts.total.textContent = has ? fmt(total) : '-';
   ctx.facts.cells.textContent = has ? fmt(ctx.cells.length) : '-';
 
   const parts = [];
   parts.push(has
-    ? `${fmt(total)} ${sensorName(ctx.sensor)} detections across Sarawak; ${area} is highlighted.`
-    : `No ${sensorName(ctx.sensor)} map for ${periodText(wanted)}.`);
+    ? `Darker squares had more hotspots. ${area} is outlined.`
+    : `No map for ${periodText(wanted)}.`);
   if (ctx.scope === 'range' && has && ctx.months.length < wanted.length) {
     const other = ctx.sensor === 'VIIRS' ? 'Raw MODIS' : 'Raw VIIRS';
-    parts.push(`${sensorName(ctx.sensor)} fully covers ${fmt(ctx.months.length)} of the ${fmt(wanted.length)} months in your range (${periodText(ctx.months)}); choose ${other} to map the rest.`);
-  }
-  if (s.sensorView === 'harmonized') {
-    parts.push(`Harmonized estimates are area totals without locations, so the map shows what ${sensorName(ctx.sensor)} observed.`);
+    parts.push(`This satellite only covers ${periodText(ctx.months)} of your dates; pick ${other} above to see the rest.`);
   }
   const text = parts.join(' ');
   ctx.summaryEl.textContent = text;
@@ -399,8 +424,8 @@ function updateLegend() {
   const { bins } = ctx;
   const items = bins.map((_, i) => `
     <li><span class="map-swatch" style="background:var(--fire-${i + 1})"></span>${binLabel(i, bins)}</li>`).join('');
-  const what = ctx.scope === 'month' ? 'detections per square in the month' : 'detections per square in the range';
-  ctx.legendEl.innerHTML = `<p class="small-text">${what}${ctx.viewName === '3d' ? '; column height grows with the count' : ''}</p><ul>${items}</ul>`;
+  const what = ctx.scope === 'month' ? 'Hotspots per square that month' : 'Hotspots per square over your dates';
+  ctx.legendEl.innerHTML = `<p class="legend-title">${what}${ctx.viewName === '3d' ? ' (taller = more)' : ''}</p><ul>${items}</ul>`;
 }
 
 function updateTopList() {
@@ -447,14 +472,13 @@ function placeName(c) {
 
 function showTooltip(cell, at, pinned = false) {
   if (!cell || !at) return hideTooltip();
-  const procs = [...cell.processing].map((p) => (p === 'nrt' ? 'near real-time' : 'standard')).join(' and ');
   const period = periodText(ctx.months || []);
   ctx.tooltipEl.innerHTML = '';
   const lines = [
     ['strong', placeName(cell)],
-    ['span', `Square centred at ${coordText(cell)} (about 5.5 km wide)`],
-    ['span', period],
-    ['span', `${sensorName(ctx.sensor)}: ${cell.count.toLocaleString('en-GB')} hotspot detection${cell.count === 1 ? '' : 's'}, observed (${procs} processing)`],
+    ['span', `${cell.count.toLocaleString('en-GB')} hotspot${cell.count === 1 ? '' : 's'} in ${period}`],
+    ['span', `Seen by the ${ctx.sensor === 'VIIRS' ? 'newer' : 'older'} satellite (${sensorName(ctx.sensor)})${cell.processing.has('nrt') ? ', provisional' : ''}`],
+    ['span', `About 5 km square near ${coordText(cell)}`],
   ];
   for (const [tag, text] of lines) {
     const el = document.createElement(tag);
@@ -522,9 +546,7 @@ async function switchView(name, { initial = false } = {}) {
   if (!initial) writePref(ctx.viewName);
   if (!ctx.hintEl.textContent || ctx.hintEl.dataset.auto === 'true') {
     ctx.hintEl.dataset.auto = 'true';
-    ctx.hintEl.textContent = ctx.viewName === '3d'
-      ? 'Drag to turn, right-drag or two fingers to move, scroll to zoom. Arrow keys move the map when it has focus.'
-      : 'Drag to move, Ctrl and scroll or pinch to zoom. With the map focused: arrow keys move, + and - zoom, Enter shows the square in the centre.';
+    ctx.hintEl.textContent = ctx.viewName === '3d' ? 'Drag to turn the map. Scroll or pinch to zoom.' : '';
   }
   ctx.view.setArea(getState().areaId, { instant: true });
   ctx.view.setCells(ctx.cells, getState().areaId);
