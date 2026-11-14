@@ -141,17 +141,44 @@ def acquire_boundaries(manifest: dict) -> None:
 
 # ---------- 2. FIRMS ----------
 
-def check_key(key: str) -> None:
+def key_status(key: str) -> dict | None:
+    """FIRMS key status, e.g. {"transaction_limit": 5000, "current_transactions": 120}. None if the key is bad."""
     resp = get(f"{FIRMS}/mapserver/mapkey_status/?MAP_KEY={key}", key)
     try:
         status = resp.json()
     except ValueError:
-        status = {}
-    if resp.status_code != 200 or "transaction_limit" not in status:
+        return None
+    return status if resp.status_code == 200 and "transaction_limit" in status else None
+
+
+def wait_for_budget(key: str, share: float = 0.8) -> None:
+    """FIRMS counts transactions per key over 10 minutes and answers "Invalid MAP_KEY" once the limit is
+    reached. Pause while more than `share` of the limit is used, so the download never hits it."""
+    told = False
+    while True:
+        status = key_status(key)
+        if status is None:
+            raise PipelineError("FIRMS rejected FIRMS_MAP_KEY. Check the key in pipeline/.env "
+                                "(get one at https://firms.modaps.eosdis.nasa.gov/api/map_key/).")
+        used, limit = int(status.get("current_transactions", 0)), int(status.get("transaction_limit", 5000))
+        if used < limit * share:
+            if told:
+                print(f"\n  Resuming: {used} of {limit} transactions used")
+            return
+        if not told:
+            print(f"\n  FIRMS budget nearly used ({used} of {limit} in 10 minutes); pausing until it resets")
+            told = True
+        time.sleep(30)
+
+
+def check_key(key: str) -> None:
+    status = key_status(key)
+    if status is None:
         raise PipelineError("FIRMS rejected FIRMS_MAP_KEY. Check the key in pipeline/.env "
                             "(get one at https://firms.modaps.eosdis.nasa.gov/api/map_key/).")
     print(f"FIRMS key OK: {status.get('current_transactions', '?')} of "
           f"{status.get('transaction_limit', '?')} transactions used in this 10-minute window")
+    wait_for_budget(key)
 
 
 def data_availability(key: str) -> dict[str, tuple[date, date]]:
@@ -222,6 +249,10 @@ def acquire_source(key: str, source: str, start: date, end: date, days: int) -> 
 
     while nxt <= end:
         span = min(days, (end - nxt).days + 1)
+        windows_done = getattr(acquire_source, "_count", 0) + 1
+        acquire_source._count = windows_done
+        if windows_done % 40 == 0:
+            wait_for_budget(key)
         result = fetch_window(key, source, nxt, span)
         if isinstance(result, str):
             if "day" in result.lower() and "range" in result.lower() and days > 5:
@@ -229,8 +260,15 @@ def acquire_source(key: str, source: str, start: date, end: date, days: int) -> 
                 days = 5
                 continue
             if "invalid" in result.lower() and "key" in result.lower():
-                raise PipelineError("FIRMS says the MAP_KEY is invalid.")
+                # Usually the 10-minute transaction limit, not a bad key: wait_for_budget tells them apart.
+                refusals = getattr(acquire_source, "_refusals", 0) + 1
+                acquire_source._refusals = refusals
+                if refusals > 5:
+                    raise PipelineError(f"FIRMS keeps refusing {source} from {nxt} although the key has budget left.")
+                wait_for_budget(key, share=0.5 if refusals > 1 else 0.8)
+                continue
             raise PipelineError(f"{source} window starting {nxt} failed: {result}")
+        acquire_source._refusals = 0
         header, rows = result
         by_year: dict[str, list] = {}
         if rows:
@@ -293,7 +331,7 @@ def acquire_firms(manifest: dict, days: int) -> None:
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--only", choices=["boundaries", "firms"])
-    parser.add_argument("--days", type=int, default=10, help="days per FIRMS request (FIRMS maximum)")
+    parser.add_argument("--days", type=int, default=5, help="days per FIRMS request (FIRMS allows 1 to 5)")
     args = parser.parse_args()
 
     try:
