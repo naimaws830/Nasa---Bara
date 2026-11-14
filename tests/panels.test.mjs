@@ -383,7 +383,9 @@ test('meaning of a month says good or bad in plain words, and fits the season', 
 test('meaning of next month compares with the busiest time of year and the dry case', () => {
   const quiet = S.meaningOfNext({ area: 'A', monthName: 'November', expected: 1, peakMedian: 181, dryExpected: 1.4, rainMattered: true });
   assert.match(quiet, /usually a quiet month/);
-  assert.match(quiet, /dry spell could push it up/);
+  assert.match(quiet, /dry spell would raise it a little/); // 1.4 rounds to 1: no "push it up to about 1"
+  assert.match(S.meaningOfNext({ area: 'A', monthName: 'November', expected: 39, peakMedian: 2020, dryExpected: 47, rainMattered: true }),
+    /dry spell could push it up to about 47/);
   assert.match(S.meaningOfNext({ area: 'A', monthName: 'August', expected: 170, peakMedian: 181, dryExpected: 200, rainMattered: true }),
     /one of the busiest fire months/);
   assert.doesNotMatch(quiet, BANNED);
@@ -394,7 +396,7 @@ test('meaning of a rain year names the real peak month and its rain', () => {
   const rows = FC.yearRows(cal, rain, 'sarawak', 2019);
   const peak = rows.filter((r) => r.hotspots != null).reduce((a, b) => (b.hotspots > a.hotspots ? b : a));
   const text = S.meaningOfRainYear(rows, 2019);
-  assert.match(text, new RegExp(`peaked in ${S.monthName(peak.month)} \(${S.fmtCount(peak.hotspots)}\)`));
+  assert.ok(text.includes(`peaked in ${S.monthName(peak.month)} (${S.fmtCount(peak.hotspots)})`), text);
   assert.match(text, new RegExp(`${peak.pct}% of normal`));
   assert.doesNotMatch(text, BANNED);
 });

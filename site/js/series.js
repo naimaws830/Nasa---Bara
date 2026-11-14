@@ -181,9 +181,9 @@ export function meaningOfNext({ area, monthName: name, expected, peakMedian, dry
   const busy = share < 0.25 ? `${name} is usually a quiet month for fires in ${area}.`
     : share < 0.75 ? `${name} usually sees some fires in ${area}, though not as many as the peak of fire season.`
       : `${name} is one of the busiest fire months in ${area}.`;
-  const risk = rainMattered && dryExpected > expected
+  const risk = rainMattered && Math.round(dryExpected) > Math.round(expected)
     ? ` A dry spell could push it up to about ${fmtCount(dryExpected)}, so it is still worth being careful with open burning.`
-    : '';
+    : rainMattered ? ' A dry spell would raise it a little, so it is still worth being careful with open burning.' : '';
   return busy + risk;
 }
 

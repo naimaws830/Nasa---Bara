@@ -63,7 +63,7 @@ export async function mount(root) {
   root.innerHTML = `
     <header class="panel-head">
       <div class="panel-title">
-        <p class="eyebrow">Next month</p>
+        <p class="eyebrow">Forecast</p>
         <h2 class="panel-heading">What to expect in ${monthLabel(target)}</h2>
       </div>
     </header>
