@@ -1,0 +1,324 @@
+{
+ "about": "Every reader-facing sentence pattern in Bara, with {placeholders} that the code fills from real data. polish_wording.py sends this to an AI for plainer wording; a person reviews the suggestions before anything changes in site/js. Numbers never come from the AI.",
+ "audience": "People living in Sarawak (Mukah and nearby), not data experts. Many read English as a second language. Reading age about 12.",
+ "items": [
+  {
+   "id": "status.count",
+   "where": "Selected month panel, first sentence",
+   "template": "Satellites spotted {n} hotspots in {area} in {month}.",
+   "example": "Satellites spotted 216 hotspots in Mukah Division in July 2025."
+  },
+  {
+   "id": "status.lower",
+   "where": "Selected month, compares with a normal month",
+   "template": "That is fewer than usual (a normal {mname} has about {median}).",
+   "example": "That is fewer than usual (a normal October has about 15)."
+  },
+  {
+   "id": "status.normal",
+   "where": "Selected month",
+   "template": "That is about normal (a normal {mname} has about {median}).",
+   "example": "That is about normal (a normal March has about 15)."
+  },
+  {
+   "id": "status.higher",
+   "where": "Selected month",
+   "template": "That is more than usual (a normal {mname} has about {median}).",
+   "example": "That is more than usual (a normal May has about 40)."
+  },
+  {
+   "id": "status.much",
+   "where": "Selected month, at least twice normal",
+   "template": "That is about {x} times more than usual (a normal {mname} has about {median}).",
+   "example": "That is about 3 times more than usual (a normal July has about 64)."
+  },
+  {
+   "id": "status.estimate",
+   "where": "Selected month, months before 2012",
+   "template": "This is an estimate, because the newer satellite only started in 2012.",
+   "example": "This is an estimate, because the newer satellite only started in 2012."
+  },
+  {
+   "id": "status.provisional",
+   "where": "Selected month, very recent months",
+   "template": "Recent numbers may still change slightly.",
+   "example": "Recent numbers may still change slightly."
+  },
+  {
+   "id": "status.nodata",
+   "where": "Selected month without full data",
+   "template": "There is no full satellite record for {area} in {month}.",
+   "example": "There is no full satellite record for Mukah Division in January 2012."
+  },
+  {
+   "id": "meaning.month.much",
+   "where": "'What this means' for a month far above normal",
+   "template": "A bad month for fires in {area}: far more than a normal {mname}. Months like this can bring smoky air.",
+   "example": "A bad month for fires in Mukah Division: far more than a normal July. Months like this can bring smoky air."
+  },
+  {
+   "id": "meaning.month.higher.season",
+   "where": "'What this means', above normal, during fire season",
+   "template": "A busier fire-season month than usual in {area}. Watch haze news at times like this.",
+   "example": "A busier fire-season month than usual in Sarawak. Worth keeping an eye on haze news at times like this."
+  },
+  {
+   "id": "meaning.month.higher.offseason",
+   "where": "'What this means', above normal, outside fire season",
+   "template": "More fires than a normal {mname} in {area}, even though this is usually a quieter time of year.",
+   "example": "More fires than a normal April in Mukah Division, even though this is usually a quieter time of year."
+  },
+  {
+   "id": "meaning.month.normal.season",
+   "where": "'What this means', normal, during fire season",
+   "template": "A typical fire-season month for {area}: fires are common at this time of year, and this one was no worse than usual.",
+   "example": "A typical fire-season month for Sarawak: fires are common at this time of year, and this one was no worse than usual."
+  },
+  {
+   "id": "meaning.month.normal.offseason",
+   "where": "'What this means', normal, outside fire season",
+   "template": "A typical {mname} for {area}: nothing unusual.",
+   "example": "A typical March for Mukah Division: nothing unusual."
+  },
+  {
+   "id": "meaning.month.lower.season",
+   "where": "'What this means', below normal, during fire season",
+   "template": "Good news: a calmer fire season than usual in {area}.",
+   "example": "Good news: a calmer fire season than usual in Sarawak."
+  },
+  {
+   "id": "meaning.month.lower.offseason",
+   "where": "'What this means', below normal, outside fire season",
+   "template": "Good news: fewer fires than usual in {area}, at an already quiet time of year.",
+   "example": "Good news: fewer fires than usual in Mukah Division, at an already quiet time of year."
+  },
+  {
+   "id": "meaning.month.nodata",
+   "where": "'What this means', month without full data",
+   "template": "There is no full satellite record for {month}, so we can't say how it compares.",
+   "example": "There is no full satellite record for January 2012, so we can't say how it compares."
+  },
+  {
+   "id": "prep.season",
+   "where": "'Be prepared' box: usual fire season of the area",
+   "template": "In {area}, fire season usually runs {start} to {end}, busiest in {peak}.",
+   "example": "In Mukah Division, fire season usually runs June to August, busiest in August."
+  },
+  {
+   "id": "prep.now.in",
+   "where": "'Be prepared': today is inside fire season",
+   "template": "It is {now} now, which is usually part of fire season.",
+   "example": "It is August now, which is usually part of fire season."
+  },
+  {
+   "id": "prep.now.soon",
+   "where": "'Be prepared': fire season starts within 2 months",
+   "template": "Fire season usually starts in {start}, so now is a good time to prepare.",
+   "example": "Fire season usually starts in June, so now is a good time to prepare."
+  },
+  {
+   "id": "prep.now.quiet",
+   "where": "'Be prepared': today is a quiet month",
+   "template": "{now} is usually a quiet month for fires here.",
+   "example": "November is usually a quiet month for fires here."
+  },
+  {
+   "id": "prep.busier",
+   "where": "'Be prepared': the picked month was busier than usual",
+   "template": "{selected} was busier than usual. Fires nearby can bring haze.",
+   "example": "July 2025 was busier than usual. Fires nearby can bring haze."
+  },
+  {
+   "id": "prep.rare",
+   "where": "'Be prepared': area with very few hotspots",
+   "template": "Hotspots are rare in {area} itself.",
+   "example": "Hotspots are rare in Tanjung Manis District itself."
+  },
+  {
+   "id": "prep.tip.mask",
+   "where": "'Be prepared' checklist",
+   "template": "Keep face masks (N95) at home for haze days.",
+   "example": "Keep face masks (N95) at home for haze days."
+  },
+  {
+   "id": "prep.tip.apims",
+   "where": "'Be prepared' checklist; APIMS is the official Malaysian air-quality site; 100 is the official 'unhealthy' level",
+   "template": "Check today's air quality on APIMS (Department of Environment). Above 100 is unhealthy: spend less time outdoors.",
+   "example": "Check today's air quality on APIMS (Department of Environment). Above 100 is unhealthy: spend less time outdoors."
+  },
+  {
+   "id": "prep.tip.burn",
+   "where": "'Be prepared' checklist; 999 is Malaysia's emergency number",
+   "template": "Do not burn rubbish or land. In an emergency, call 999.",
+   "example": "Do not burn rubbish or land. In an emergency, call 999."
+  },
+  {
+   "id": "prep.foot",
+   "where": "'Be prepared' footnote",
+   "template": "Based on past satellite records, not today's haze. Haze can also blow in from fires outside Sarawak.",
+   "example": "Based on past satellite records, not today's haze. Haze can also blow in from fires outside Sarawak."
+  },
+  {
+   "id": "outlook.expect",
+   "where": "Forecast panel, first sentence",
+   "template": "In {target}, expect about {n} hotspots in {area}.",
+   "example": "In November 2026, expect about 39 hotspots in Sarawak."
+  },
+  {
+   "id": "outlook.range",
+   "where": "Forecast panel, the likely range",
+   "template": "Most likely somewhere between {low} and {high}.",
+   "example": "Most likely somewhere between 25 and 84."
+  },
+  {
+   "id": "outlook.typical",
+   "where": "Forecast panel, when the number is the average of recent years",
+   "template": "That is what recent {mname}s looked like.",
+   "example": "That is what recent Novembers looked like."
+  },
+  {
+   "id": "outlook.vs",
+   "where": "Forecast panel, when the number comes from the trend model; {compare} is one of: more than / about the same as / fewer than / well above",
+   "template": "That is {compare} recent {mname}s.",
+   "example": "That is fewer than recent Novembers."
+  },
+  {
+   "id": "outlook.rain.normal",
+   "where": "Forecast panel, rain in the two months before",
+   "template": "The last two months had about normal rain.",
+   "example": "The last two months had about normal rain."
+  },
+  {
+   "id": "outlook.rain.dry",
+   "where": "Forecast panel",
+   "template": "The last two months were drier than normal (about {pct}% less rain).",
+   "example": "The last two months were drier than normal (about 20% less rain)."
+  },
+  {
+   "id": "outlook.rain.wet",
+   "where": "Forecast panel",
+   "template": "The last two months were wetter than normal (about {pct}% more rain).",
+   "example": "The last two months were wetter than normal (about 15% more rain)."
+  },
+  {
+   "id": "meaning.next.quiet",
+   "where": "Forecast 'What this means', expected is under a quarter of the busiest month",
+   "template": "{mname} is usually a quiet month for fires in {area}.",
+   "example": "November is usually a quiet month for fires in Sarawak."
+  },
+  {
+   "id": "meaning.next.some",
+   "where": "Forecast 'What this means', middling",
+   "template": "{mname} usually sees some fires in {area}, though not as many as the peak of fire season.",
+   "example": "October usually sees some fires in Sarawak, though not as many as the peak of fire season."
+  },
+  {
+   "id": "meaning.next.busy",
+   "where": "Forecast 'What this means', near the peak",
+   "template": "{mname} is one of the busiest fire months in {area}.",
+   "example": "August is one of the busiest fire months in Sarawak."
+  },
+  {
+   "id": "meaning.next.risk",
+   "where": "Forecast 'What this means', added when a dry month would raise the number",
+   "template": "A dry spell could push it up to about {dry}, so it is still worth being careful with open burning.",
+   "example": "A dry spell could push it up to about 47, so it is still worth being careful with open burning."
+  },
+  {
+   "id": "meaning.next.risk.small",
+   "where": "Forecast 'What this means', when the dry case only adds a little",
+   "template": "A dry spell would raise it a little, so it is still worth being careful with open burning.",
+   "example": "A dry spell would raise it a little, so it is still worth being careful with open burning."
+  },
+  {
+   "id": "scen.title",
+   "where": "Forecast, heading over the three rain cases",
+   "template": "Rain can change this",
+   "example": "Rain can change this"
+  },
+  {
+   "id": "scen.dry",
+   "where": "Forecast, rain case label",
+   "template": "If {mname} is drier than usual",
+   "example": "If November is drier than usual"
+  },
+  {
+   "id": "scen.normal",
+   "where": "Forecast, rain case label",
+   "template": "If {mname} has normal rain",
+   "example": "If November has normal rain"
+  },
+  {
+   "id": "scen.wet",
+   "where": "Forecast, rain case label",
+   "template": "If {mname} is wetter than usual",
+   "example": "If November is wetter than usual"
+  },
+  {
+   "id": "scen.why",
+   "where": "Forecast, under the rain cases",
+   "template": "Less rain dries the land, so fires start and spread more easily.",
+   "example": "Less rain dries the land, so fires start and spread more easily."
+  },
+  {
+   "id": "scen.little",
+   "where": "Forecast, when rain made little difference in the past",
+   "template": "In past {mname}s, rain made little difference here.",
+   "example": "In past Novembers, rain made little difference here."
+  },
+  {
+   "id": "meaning.rain.dry",
+   "where": "Rain and hotspots chart 'What this means': the busiest month was a dry month",
+   "template": "In {year}, the most hotspots were in {peak} ({n}). Rain was only {pct}% of normal that month. Dry weather and fires go together.",
+   "example": "In 2019, hotspots peaked in August (1,320), when rain was only 69% of normal: a dry month. Dry weather and fires go together."
+  },
+  {
+   "id": "meaning.rain.notdry",
+   "where": "Rain chart: the busiest month had normal or more rain; {rainword} is 'about normal' or 'above normal'",
+   "template": "In {year}, the most hotspots were in {peak} ({n}). Rain was {rainword}, so dry weather alone doesn't explain it.",
+   "example": "In 2014, hotspots peaked in March (412), when rain was about normal, so dry weather alone doesn't explain that peak."
+  },
+  {
+   "id": "meaning.rain.few",
+   "where": "Rain chart: almost no hotspots that year",
+   "template": "Very few hotspots in {year}, so rain made little visible difference.",
+   "example": "Very few hotspots in 2022, so rain made little visible difference."
+  },
+  {
+   "id": "chart.howto",
+   "where": "Rain chart, how to read it",
+   "template": "How to read it: the red line shows hotspots each month. The bars show rain that month. The black tick is a normal amount. Orange bars are dry months, and dry months often bring more hotspots.",
+   "example": "How to read it: red line = hotspots each month. Bars: rain that month (the black tick is a normal amount). Orange bars are dry months, and dry months often come with more hotspots."
+  },
+  {
+   "id": "meaning.proof.why",
+   "where": "Sensor proof 'What this means', why the satellite fix matters",
+   "template": "An old satellite and a new one count fires differently. The new one sees about {ratio} times more. Without the fix, fires would seem to jump suddenly in 2012. With the fix, all 25 years can be compared fairly.",
+   "example": "An older and a newer satellite count fires differently: the newer one sees about 4 times more. Without this fix, fires would seem to jump suddenly in 2012. With it, all 25 years can be compared fairly."
+  },
+  {
+   "id": "meaning.proof.worst",
+   "where": "Sensor proof 'What this means'; years before 2012 are estimates",
+   "template": "{area} had the most hotspots in {year}: about {n} (estimated, because the new satellite started in 2012).",
+   "example": "Sarawak's worst year was 2009, with about 22,249 hotspots (estimated, as the newer satellite started in 2012)."
+  },
+  {
+   "id": "meaning.proof.fewer",
+   "where": "Sensor proof 'What this means', long-term change",
+   "template": "Recent years ({from} to {to}) had about {pct}% fewer hotspots a year than {from0} to {to0}.",
+   "example": "In recent years (2021 to 2025) there were about 84% fewer hotspots a year than in 2001 to 2010."
+  },
+  {
+   "id": "map.summary",
+   "where": "Map, under the map",
+   "template": "Darker squares had more hotspots. {area} is outlined.",
+   "example": "Darker squares had more hotspots. Mukah Division is outlined."
+  },
+  {
+   "id": "calendar.howto",
+   "where": "Calendar, under the title",
+   "template": "Each box is one month. Darker = more hotspots. Click a box to see that month.",
+   "example": "Each box is one month. Darker = more hotspots. Click a box to see that month."
+  }
+ ]
+}

@@ -49,13 +49,12 @@ async function boot() {
   if (DEBUG) console.info('[Bara] Try setState({ selectedMonth: "2015-09" }) in the console.');
 
   await Promise.allSettled(MODULES.map(mountModule));
-<<<<<<< HEAD
+  await mountReplay();
   try {
     (await import('./nav.js')).initNav();
   } catch (err) {
     console.warn('[Bara] navigation bar failed:', err);
-=======
-  await mountReplay();
+  }
 }
 
 // Replay only appends its own controls; never replaces the already mounted map.
@@ -73,7 +72,6 @@ async function mountReplay() {
     note.className = 'panel-error';
     note.textContent = 'Historical replay is unavailable; the map still works.';
     root.append(note);
->>>>>>> origin/feature/raccocoon-m03-replay
   }
 }
 

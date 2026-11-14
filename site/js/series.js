@@ -162,7 +162,7 @@ export function meaningOfMonth({ area, month, level, inSeason }) {
       return `A bad month for fires in ${area}: far more than a normal ${name}. Months like this can bring smoky air.`;
     case 'higher':
       return inSeason
-        ? `A busier fire-season month than usual in ${area}. Worth keeping an eye on haze news at times like this.`
+        ? `A busier fire-season month than usual in ${area}. Watch haze news at times like this.`
         : `More fires than a normal ${name} in ${area}, even though this is usually a quieter time of year.`;
     case 'normal':
       return inSeason
@@ -193,12 +193,12 @@ export function meaningOfRainYear(rows, year) {
   if (!withData.length) return `No hotspot record for ${year} yet.`;
   const peak = withData.reduce((a, b) => (b.hotspots > a.hotspots ? b : a));
   if (Math.round(peak.hotspots) < 3) return `Very few hotspots in ${year}, so rain made little visible difference.`;
-  const when = `In ${year}, hotspots peaked in ${monthName(peak.month)} (${fmtCount(peak.hotspots)})`;
-  if (peak.pct == null) return `${when}.`;
+  const when = `In ${year}, the most hotspots were in ${monthName(peak.month)} (${fmtCount(peak.hotspots)}).`;
+  if (peak.pct == null) return when;
   if (peak.pct < 90) {
-    return `${when}, when rain was only ${peak.pct}% of normal: a dry month. Dry weather and fires go together.`;
+    return `${when} Rain was only ${peak.pct}% of normal that month. Dry weather and fires go together.`;
   }
-  return `${when}, when rain was ${peak.pct <= 110 ? 'about normal' : 'above normal'}, so dry weather alone doesn't explain that peak.`;
+  return `${when} Rain was ${peak.pct <= 110 ? 'about normal' : 'above normal'}, so dry weather alone doesn't explain it.`;
 }
 
 /**
@@ -217,17 +217,17 @@ export function meaningOfProof({ area, annual, ratio }) {
   const last = years.at(-1);
   const early = val(years[0], years[0] + 9);
   const recent = val(last - 4, last);
-  const parts = [`An older and a newer satellite count fires differently${ratio ? `: the newer one sees about ${Math.round(ratio)} times more` : ''}.`
-    + ' Without this fix, fires would seem to jump suddenly in 2012. With it, all 25 years can be compared fairly.'];
+  const parts = [`An old satellite and a new one count fires differently.${ratio ? ` The new one sees about ${Math.round(ratio)} times more.` : ''}`
+    + ' Without the fix, fires would seem to jump suddenly in 2012. With the fix, all 25 years can be compared fairly.'];
   if (worst) {
-    parts.push(`${area}'s worst year was ${worst.y}, with about ${fmtCount(worst.v)} hotspots`
-      + `${worst.y < 2012 ? ' (estimated, as the newer satellite started in 2012)' : ''}.`);
+    parts.push(`${area} had the most hotspots in ${worst.y}: about ${fmtCount(worst.v)}`
+      + `${worst.y < 2012 ? ' (estimated, because the new satellite started in 2012)' : ''}.`);
   }
   if (early && recent != null) {
     const change = Math.round((1 - recent / early) * 100);
     parts.push(change > 0
-      ? `In recent years (${last - 4} to ${last}) there were about ${change}% fewer hotspots a year than in ${years[0]} to ${years[0] + 9}.`
-      : `In recent years (${last - 4} to ${last}) there were about ${-change}% more hotspots a year than in ${years[0]} to ${years[0] + 9}.`);
+      ? `Recent years (${last - 4} to ${last}) had about ${change}% fewer hotspots a year than ${years[0]} to ${years[0] + 9}.`
+      : `Recent years (${last - 4} to ${last}) had about ${-change}% more hotspots a year than ${years[0]} to ${years[0] + 9}.`);
   }
   return parts.join(' ');
 }

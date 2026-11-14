@@ -396,7 +396,7 @@ test('meaning of a rain year names the real peak month and its rain', () => {
   const rows = FC.yearRows(cal, rain, 'sarawak', 2019);
   const peak = rows.filter((r) => r.hotspots != null).reduce((a, b) => (b.hotspots > a.hotspots ? b : a));
   const text = S.meaningOfRainYear(rows, 2019);
-  assert.ok(text.includes(`peaked in ${S.monthName(peak.month)} (${S.fmtCount(peak.hotspots)})`), text);
+  assert.ok(text.includes(`the most hotspots were in ${S.monthName(peak.month)} (${S.fmtCount(peak.hotspots)})`), text);
   assert.match(text, new RegExp(`${peak.pct}% of normal`));
   assert.doesNotMatch(text, BANNED);
 });
@@ -408,7 +408,7 @@ test('meaning of the satellite check uses the real worst year and the real chang
   const text = S.meaningOfProof({ area: 'Sarawak', annual, ratio: overlapRatio(cal) });
   let worst = null;
   annual.keys.forEach((y, i) => { if (annual.harmonizedCount[i] != null && (!worst || annual.harmonizedCount[i] > worst.v)) worst = { y, v: annual.harmonizedCount[i] }; });
-  assert.match(text, new RegExp(`worst year was ${worst.y}, with about ${S.fmtCount(worst.v)} hotspots`));
-  assert.match(text, /fewer hotspots a year than in 2001 to 2010/);
+  assert.ok(text.includes(`had the most hotspots in ${worst.y}: about ${S.fmtCount(worst.v)}`), text);
+  assert.match(text, /fewer hotspots a year than 2001 to 2010/);
   assert.doesNotMatch(text, BANNED);
 });

@@ -74,8 +74,8 @@ export async function mount(root) {
     <section class="fc-chart-wrap">
       <h3 class="st-subhead" id="fc-chart-title"></h3>
       <div id="fc-chart-meaning"></div>
-      <p class="small-text fc-chart-sub">How to read it: red line = hotspots each month. Bars: rain that month (the black tick is a normal
-        amount). <strong>Orange bars are dry months</strong>, and dry months often come with more hotspots.</p>
+      <p class="small-text fc-chart-sub">How to read it: the red line shows hotspots each month. The bars show rain that month.
+        The black tick is a normal amount. <strong>Orange bars are dry months</strong>, and dry months often bring more hotspots.</p>
       <ul class="pf-legend" aria-label="Chart key">
         <li><svg width="22" height="10" aria-hidden="true"><line x1="1" y1="5" x2="21" y2="5" class="fc-line"/></svg>Hotspots</li>
         <li><svg width="12" height="12" aria-hidden="true"><rect width="12" height="12" class="fc-bar"/></svg>Rain</li>
