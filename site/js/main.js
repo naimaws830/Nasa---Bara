@@ -3,6 +3,7 @@
 // 2. Set the store's bounds and defaults from it, show the REAL / DEMO badge.
 // 3. Mount every module. A module that is missing or throws shows "This panel failed to load"
 //    in its own panel; the header, controls and other panels keep working.
+// 4. Mount M-03 replay beneath the existing map after the normal panels have settled.
 
 import { configure, getState, setState, subscribe } from './store.js';
 import { isMock, loadMeta } from './data.js';
@@ -48,10 +49,31 @@ async function boot() {
   if (DEBUG) console.info('[Bara] Try setState({ selectedMonth: "2015-09" }) in the console.');
 
   await Promise.allSettled(MODULES.map(mountModule));
+<<<<<<< HEAD
   try {
     (await import('./nav.js')).initNav();
   } catch (err) {
     console.warn('[Bara] navigation bar failed:', err);
+=======
+  await mountReplay();
+}
+
+// Replay only appends its own controls; never replaces the already mounted map.
+// A replay failure is isolated so the rest of Bara remains usable.
+async function mountReplay() {
+  const root = document.querySelector('#map');
+  if (!root || root.dataset.mounted !== 'true') return;
+  try {
+    const { mount } = await import('./map/replay.js');
+    if (typeof mount !== 'function') throw new Error('Replay module does not export mount(rootElement)');
+    await mount(root);
+  } catch (err) {
+    console.warn('[Bara] Historical replay failed to load:', err);
+    const note = document.createElement('p');
+    note.className = 'panel-error';
+    note.textContent = 'Historical replay is unavailable; the map still works.';
+    root.append(note);
+>>>>>>> origin/feature/raccocoon-m03-replay
   }
 }
 
