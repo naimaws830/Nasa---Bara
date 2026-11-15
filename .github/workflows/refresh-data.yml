@@ -33,7 +33,7 @@ jobs:
       - name: Install pipeline dependencies
         run: pip install -r pipeline/requirements.txt
 
-      - name: Run pipeline (production: verified districts only)
+      - name: "Run pipeline (production: verified districts only)"
         env:
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
         run: |
