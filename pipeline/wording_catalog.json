@@ -319,6 +319,72 @@
    "where": "Calendar, under the title",
    "template": "Each box is one month. Darker = more hotspots. Click a box to see that month.",
    "example": "Each box is one month. Darker = more hotspots. Click a box to see that month."
+  },
+  {
+   "id": "game.faster",
+   "where": "Commander mode 'What happened': player's trucks reached the 5 worst fire areas faster than the computer's coverage plan",
+   "template": "Your trucks got to the worst fires faster than the computer's plan ({mine} against {plan} on average).",
+   "example": "Your trucks reached the worst fires faster than the computer's plan (17 km against 29 km on average)."
+  },
+  {
+   "id": "game.same",
+   "where": "Commander mode 'What happened': about as fast as the computer's plan",
+   "template": "Your trucks got to the worst fires about as fast as the computer's plan ({mine} against {plan} on average).",
+   "example": "Your trucks reached the worst fires about as fast as the computer's plan (27 km against 29 km on average)."
+  },
+  {
+   "id": "game.slower",
+   "where": "Commander mode 'What happened': slower than the computer's plan",
+   "template": "Your trucks took longer to get to the worst fires than the computer's plan ({mine} against {plan} on average).",
+   "example": "Your trucks took longer to reach the worst fires than the computer's plan (41 km against 29 km on average)."
+  },
+  {
+   "id": "game.worst.near",
+   "where": "Commander mode: the worst fire area had a truck within 20 km",
+   "template": "The worst fire area, with {n} hotspots, was only {km} from a truck.",
+   "example": "The worst fire area, with 146 hotspots, was only 8 km from a truck."
+  },
+  {
+   "id": "game.worst.far",
+   "where": "Commander mode: the worst fire area had no truck within 20 km",
+   "template": "The worst fire area, with {n} hotspots, had no truck nearby: the nearest was {km} away.",
+   "example": "The worst fire area, with 146 hotspots, had no truck nearby: the nearest was 34 km away."
+  },
+  {
+   "id": "game.far.one",
+   "where": "Commander mode: one other fire area had no truck within 20 km, so a truck came from further",
+   "template": "Fire area {areas} had no truck nearby, so a truck came from {kms} away.",
+   "example": "Fire area 4 had no truck nearby, so a truck came from 37 km away."
+  },
+  {
+   "id": "game.far.many",
+   "where": "Commander mode: several fire areas had no truck within 20 km; {areas} is like '4 and 5', {kms} like '37 km and 24 km'",
+   "template": "Fire areas {areas} had no truck nearby, so trucks came from {kms} away.",
+   "example": "Fire areas 4 and 5 had no truck nearby, so trucks came from 37 km and 24 km away."
+  },
+  {
+   "id": "game.cover",
+   "where": "Commander mode: share of all hotspots within 20 km of a truck",
+   "template": "Your trucks were within 20 km of {pct} out of 100 hotspots (computer plan: {planpct}).",
+   "example": "Your trucks were within 20 km of 77 out of every 100 hotspots (the computer's plan: 90)."
+  },
+  {
+   "id": "game.tip.far",
+   "where": "Commander mode tip, when some fire area needed a long trip",
+   "template": "Tip: put a truck closer to fire area {rank}, the longest trip.",
+   "example": "Tip: place a truck closer to fire area 4, the longest trip."
+  },
+  {
+   "id": "game.tip.spread",
+   "where": "Commander mode tip, when trucks covered clearly fewer hotspots than the computer's plan",
+   "template": "Tip: spread your trucks out a little to cover more of the smaller fires.",
+   "example": "Tip: spread your trucks out a little to cover more of the smaller fires."
+  },
+  {
+   "id": "game.well",
+   "where": "Commander mode, when every worst fire area had a truck within 20 km",
+   "template": "Well placed: every worst fire area had a truck nearby.",
+   "example": "Well placed: every worst fire area had a truck nearby."
   }
  ]
 }

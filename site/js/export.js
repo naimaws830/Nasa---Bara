@@ -5,7 +5,7 @@
 // Files are built in the browser (Blob), so the links work locally and on GitHub Pages.
 
 import { getState, subscribe } from './store.js';
-import { dataURL, loadAreas, loadCalendar, loadForecast, loadMap, loadMeta, loadRain } from './data.js';
+import { loadAreas, loadCalendar, loadForecast, loadMap, loadMeta, loadRain } from './data.js';
 import {
   MONTHLY_COLUMNS, OUTLOOK_COLUMNS, SQUARE_COLUMNS, monthLabel, monthlyRows, outlookRows, periodLabel, toCSV,
 } from './series.js';
@@ -45,11 +45,7 @@ export async function mount(root) {
       </div>
       <button type="button" class="button" id="ex-outlook">Download CSV</button>
     </div>
-    <p class="ex-status small-text" id="ex-status" role="status"></p>
-    <details class="ex-files">
-      <summary>Files for developers (JSON)</summary>
-      <ul id="ex-links"></ul>
-    </details>`;
+    <p class="ex-status small-text" id="ex-status" role="status"></p>`;
   addInfo(root, 'About these files', `
     <p>Both files open in Excel or Google Sheets. They follow the area and dates chosen at the top of the page.</p>
     <p><strong>Monthly numbers</strong>: one row per month with the adjusted count Bara shows, what each satellite saw,
@@ -62,7 +58,6 @@ export async function mount(root) {
     scope: root.querySelector('#ex-scope'),
     info: root.querySelector('#ex-monthly-info'),
     status: root.querySelector('#ex-status'),
-    links: root.querySelector('#ex-links'),
     squaresBtn: root.querySelector('#ex-squares'),
   };
   root.querySelector('#ex-monthly').addEventListener('click', downloadMonthly);
@@ -90,21 +85,6 @@ async function render() {
   const rows = monthlyRows(cal, ui.meta, s.startMonth, s.endMonth);
   ui.scope.textContent = `For ${cal.name}, ${periodLabel(s.startMonth, s.endMonth)}.`;
   ui.info.textContent = `A spreadsheet with one row for each of the ${rows.length} months: hotspots and rainfall.`;
-  const files = [
-    [`calendar/${s.areaId.replace(':', '_')}.json`, `Calendar for ${cal.name}`],
-    ['harmonize.json', 'Harmonization method and errors'],
-    ['meta.json', 'Coverage, sources and areas'],
-    ['areas.geojson', 'Boundaries'],
-  ];
-  ui.links.replaceChildren(...files.map(([f, label]) => {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = dataURL(f);
-    a.textContent = label;
-    a.setAttribute('download', f.split('/').pop());
-    li.append(a, document.createTextNode(` (${f})`));
-    return li;
-  }));
 }
 
 function save(name, text) {

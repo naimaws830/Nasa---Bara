@@ -71,8 +71,8 @@ export async function mount(root) {
       <section class="fc-main" id="fc-main" aria-live="polite"></section>
       <section class="fc-scen" id="fc-scen" aria-label="How rain could change this"></section>
     </div>
-    <section class="fc-chart-wrap">
-      <h3 class="st-subhead" id="fc-chart-title"></h3>
+    <details class="fc-chart-wrap" id="fc-chart-details">
+      <summary class="fc-chart-summary"><span id="fc-chart-title"></span></summary>
       <div id="fc-chart-meaning"></div>
       <p class="small-text fc-chart-sub">How to read it: the red line shows hotspots each month. The bars show rain that month.
         The black tick is a normal amount. <strong>Orange bars are dry months</strong>, and dry months often bring more hotspots.</p>
@@ -87,10 +87,6 @@ export async function mount(root) {
         <summary>Show the numbers</summary>
         <div class="table-scroll" id="fc-table"></div>
       </details>
-    </section>
-    <details class="pf-methods fc-more">
-      <summary>How accurate is this?</summary>
-      <div id="fc-test"></div>
     </details>`;
   addInfo(root, 'What is this?', `
     <p>An estimate of how many <strong>hotspots</strong> (spots of fire heat seen from space) to expect next month,
@@ -99,15 +95,17 @@ export async function mount(root) {
       <a href="${METMALAYSIA_URL}" target="_blank" rel="noopener">MetMalaysia</a>; for today's haze, see APIMS.</p>
     <p>Rain matters: when it rains less, land dries out and fires start and spread more easily. Since nobody knows
       next month's rain yet, Bara shows what usually happens if it turns out drier, normal or wetter.</p>
-    <p>Districts have too few hotspots for their own estimate, so they use their division's.</p>`);
+    <p>Districts have too few hotspots for their own estimate, so they use their division's.</p>
+    <p>Rain data: ${forecast.rainSource.name} (${forecast.rainSource.basis}), up to ${monthLabel(forecast.basedOn)}.</p>`);
   ui = {
     root, meta, forecast, rain, target, tName, token: 0,
     main: root.querySelector('#fc-main'), scen: root.querySelector('#fc-scen'),
     chart: root.querySelector('#fc-chart'), tip: root.querySelector('#fc-tip'), table: root.querySelector('#fc-table'),
-    chartTitle: root.querySelector('#fc-chart-title'), test: root.querySelector('#fc-test'),
+    chartTitle: root.querySelector('#fc-chart-title'),
     chartMeaning: root.querySelector('#fc-chart-meaning'),
   };
   new ResizeObserver(() => drawChart()).observe(ui.chart);
+  root.querySelector('#fc-chart-details').addEventListener('toggle', (e) => { if (e.target.open) drawChart(); });
   subscribe((s, changed) => {
     if (changed.includes('areaId')) render();
     else if (changed.includes('selectedMonth')) renderChart();
@@ -188,22 +186,6 @@ async function render() {
   scen.push(p);
   ui.scen.replaceChildren(...scen);
 
-  // 3. Accuracy and the technical details, folded away.
-  const ev = o.evaluation;
-  const shown = Math.round((h.fromModel ? ev.model.WAPE : ev.typicalMonth.WAPE) * 100);
-  const other = Math.round((h.fromModel ? ev.typicalMonth.WAPE : ev.model.WAPE) * 100);
-  const yrs = o.typical.years;
-  const t = ui.test;
-  t.replaceChildren();
-  t.append(
-    el('p', null, `Treat this as a rough guide. We tested it on ${ev.testYear} without letting it see ${ev.testYear}: on a typical month it was off by about ${shown}%. Monthly numbers here are small, so they jump around.`),
-    el('p', null, h.fromModel
-      ? `This number comes from a model that uses the usual ${tName} pattern, the long-term trend (fewer hotspots than 10 years ago) and last month's count. In the test it did better than simply averaging recent years (${other}% off).`
-      : `This number is the average of ${tName} in ${yrs[0]} to ${yrs[1]}. Bara also has a model, but in the test it did worse (${other}% off), so Bara shows the simple average instead.`),
-    el('p', null, `Rain in the two months before did not make the estimate more accurate. Rain during ${tName} itself matters a lot, which is why the drier / normal / wetter rows are shown.`),
-    el('p', 'small-text', `Drier, normal and wetter mean about ${fmtCount(o.scenarios.dry.rainMm)}, ${fmtCount(o.scenarios.normal.rainMm)} and ${fmtCount(o.scenarios.wet.rainMm)} mm of rain in ${tName}, from 25 years of records. Rain data: ${forecast.rainSource.name} (${forecast.rainSource.basis}), up to ${monthLabel(forecast.basedOn)}.`),
-  );
-
   await renderChart();
 }
 
@@ -260,7 +242,7 @@ function nice(v) {
 }
 
 function drawChart() {
-  if (!ui?.rows) return;
+  if (!ui?.rows || !ui.chart.clientWidth) return; // dropdown closed: nothing to draw yet
   ui.chart.querySelector('svg')?.remove();
   const rows = ui.rows;
   const W = ui.chart.clientWidth;

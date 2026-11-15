@@ -1,0 +1,227 @@
+/* Commander mode (G-01). The only place, with the replay, where Bara's pixel style appears (PRD design rules):
+   Silkscreen for the score only, pixel buttons with a hard 3px offset shadow, voxel truck and fire stacks. */
+
+.game-main {
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-48);
+}
+
+.game-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-16) var(--space-32);
+  margin-bottom: var(--space-12);
+}
+
+.game-lead {
+  margin: var(--space-8) 0 0;
+  max-width: 62ch;
+}
+
+.game-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-12) var(--space-16);
+}
+
+.game-pick select {
+  min-width: 220px;
+}
+
+.game-month-note {
+  margin: 0 0 var(--space-12);
+}
+
+.game-stage {
+  position: relative;
+  height: clamp(340px, 60vh, 640px);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--haze);
+}
+
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.game-canvas:focus-visible {
+  outline: 2px solid var(--blackwater);
+  outline-offset: -2px;
+}
+
+.game-overlay {
+  position: absolute;
+  inset: auto var(--space-16) var(--space-16) var(--space-16);
+  margin: 0;
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid var(--peat);
+  background: var(--surface);
+}
+
+.game-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12) var(--space-24);
+  margin-top: var(--space-16);
+}
+
+.game-count {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12) var(--space-16);
+}
+
+/* Pixel button: square, 2px peat border, hard 3px offset shadow, no blur; pressed = shadow gone, moved 3px. */
+.pixel-button {
+  min-height: 44px;
+  padding: 0 var(--space-16);
+  border: 2px solid var(--peat);
+  border-radius: 0;
+  background: var(--haze);
+  color: var(--peat);
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--peat);
+  cursor: pointer;
+}
+
+.pixel-button-primary {
+  background: var(--blackwater);
+  color: var(--haze);
+}
+
+.pixel-button:active:not(:disabled) {
+  box-shadow: none;
+  transform: translate(3px, 3px);
+}
+
+.pixel-button:disabled {
+  border-color: var(--line-strong);
+  background: var(--surface);
+  color: var(--peat-soft);
+  box-shadow: 3px 3px 0 var(--line-strong);
+  cursor: not-allowed;
+}
+
+.game-score {
+  margin-top: var(--space-24);
+  padding: var(--space-24);
+  border: 2px solid var(--peat);
+  background: var(--surface);
+  text-align: left;
+}
+
+/* Silkscreen at 48px (a 16px multiple), only here. */
+.game-score-number {
+  margin: 0 0 var(--space-8);
+  font-family: 'Silkscreen', var(--font-body);
+  font-size: 48px;
+  line-height: 1;
+  color: var(--peat);
+}
+
+.game-score-text {
+  margin: 0 0 var(--space-8);
+  font-size: var(--text-heading);
+  font-weight: 600;
+}
+
+.game-score .game-buttons {
+  margin-top: var(--space-16);
+}
+
+.game-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.game-help,
+.game-note {
+  margin: var(--space-12) 0 0;
+  max-width: 85ch;
+}
+
+.game-note {
+  font-weight: 600;
+}
+
+@media (max-width: 599px) {
+  .game-pick,
+  .game-pick .field,
+  .game-pick select {
+    width: 100%;
+  }
+
+  .game-buttons .pixel-button {
+    flex: 1;
+  }
+}
+
+/* Dispatch: distance labels over the 3D map, and the trip list on the score screen. */
+.game-labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.game-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--blackwater);
+  background: var(--surface);
+  color: var(--blackwater);
+  font-size: var(--text-min);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.game-score-cover {
+  margin: 0 0 var(--space-8);
+  font-weight: 600;
+}
+
+.game-legs {
+  margin: 0 0 var(--space-8);
+  padding-left: var(--space-24);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-legs li + li {
+  margin-top: 2px;
+}
+
+/* "What happened" summary at the top of the score */
+.game-summary {
+  margin-bottom: var(--space-16);
+}
+
+.game-summary .meaning-text + .meaning-text {
+  margin-top: var(--space-4);
+}
+
+.game-tip {
+  font-weight: 700;
+}

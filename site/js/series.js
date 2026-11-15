@@ -118,7 +118,8 @@ export function compareText(value, median, month) {
  */
 export function levelOf(value, median) {
   if (value == null || median == null) return null;
-  if (median === 0) return value === 0 ? { key: 'normal', word: 'Normal' } : { key: 'higher', word: 'Higher than normal' };
+  // Where a month usually has no hotspots, one or two are noise, not "higher than normal".
+  if (median < 1) return Math.round(value) <= 2 ? { key: 'normal', word: 'Normal' } : { key: 'higher', word: 'Higher than normal' };
   const r = value / median;
   if (r < 0.75) return { key: 'lower', word: 'Lower than normal' };
   if (r <= 1.25) return { key: 'normal', word: 'Normal' };

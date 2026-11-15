@@ -1913,3 +1913,44 @@ fieldset.field > legend + * {
 .fc-chart-wrap .meaning {
   margin-top: var(--space-12);
 }
+
+/* Link to the Commander mode page (a separate page, so styled as a button-like link). */
+.section-nav a.nav-game {
+  margin-left: var(--space-8);
+  border: 1px solid var(--blackwater);
+  color: var(--blackwater);
+}
+
+/* Forecast: the rain and hotspots chart as a dropdown */
+.fc-chart-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 44px;
+  font-size: var(--text-body);
+  font-weight: 700;
+  color: var(--blackwater);
+  list-style: none;
+  cursor: pointer;
+}
+
+.fc-chart-summary::-webkit-details-marker {
+  display: none;
+}
+
+.fc-chart-summary::before {
+  content: "";
+  flex: none;
+  border: 6px solid transparent;
+  border-left: 7px solid currentColor;
+  border-right: 0;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.fc-chart-wrap[open] > .fc-chart-summary::before {
+  transform: rotate(90deg);
+}
+
+.fc-chart-wrap[open] > .fc-chart-summary {
+  margin-bottom: var(--space-8);
+}

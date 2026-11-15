@@ -13,7 +13,7 @@
 //
 // Pure helpers (project, areaAt, binsFor, sensorFor, monthsBetween, ...) are exported for tests.
 
-import { getState, subscribe } from './store.js';
+import { getState, setState, subscribe } from './store.js';
 import { loadAreas, loadMap, loadMeta } from './data.js';
 import { monthLabel } from './controls.js';
 import { addInfo } from './ui.js';
@@ -76,6 +76,17 @@ export function squareAreaAt(lon, lat, geojson, half = CELL * 0.48) {
   let best = null;
   for (const [a, n] of votes) if (!best || n > best[1]) best = [a, n];
   return best ? best[0] : null;
+}
+
+/**
+ * Camera distance so an area of width bw and depth bh (map units) fits a perspective view with vertical field
+ * of view fovDeg and the given aspect ratio (width / height), with a margin. Used by both 3D views.
+ */
+export function fitDistance(bw, bh, aspect, fovDeg = 35, margin = 1.25) {
+  const t = Math.tan(((fovDeg / 2) * Math.PI) / 180);
+  const byHeight = bh / (2 * t);
+  const byWidth = bw / (2 * t * Math.max(aspect, 0.1));
+  return Math.min(12, Math.max(0.35, Math.max(byHeight, byWidth) * margin));
 }
 
 /** Does a square whose centre is in district `districtId` belong to the selected area? */
@@ -263,6 +274,8 @@ export async function mount(root) {
       and fires under thick cloud can be missed.</p>
     <p>The map shows what a satellite actually saw: the newer satellite (VIIRS) from 2012, the older one (MODIS) before that.
       The adjusted numbers used elsewhere are totals for an area, so they cannot be put on a map.</p>
+    <p><strong>Pick an area:</strong> click a district on the map to zoom in to it; click elsewhere on Sarawak
+      to see the whole state again.</p>
     <p><strong>Moving around:</strong> drag the map; zoom with the + and - buttons, a pinch, or Ctrl + scroll.
       Tap or hover a square for its details. With the map selected, arrow keys move it and Enter shows the square in the middle.</p>`);
 
@@ -273,7 +286,7 @@ export async function mount(root) {
   const districtNames = new Map(areas.features.map((f) => [f.properties.id, f.properties.name]));
 
   ctx = {
-    root, meta, areas, divisionOf, areaNames, districtNames,
+    root, meta, areas, divisionOf, areaNames, districtNames, areaIds: new Set(meta.areas.map((a) => a.id)),
     viirs: sensorCoverage(meta.sensorProducts || [], 'VIIRS'),
     modis: sensorCoverage(meta.sensorProducts || [], 'MODIS'),
     stage: $('map-stage'), summaryEl: $('map-summary'), overlayEl: $('map-overlay'), tooltipEl: $('map-tooltip'),
@@ -487,6 +500,7 @@ function showTooltip(cell, at, pinned = false) {
   }
   ctx.tooltipEl.hidden = false;
   ctx.tooltipEl.dataset.pinned = pinned ? 'true' : 'false';
+  ctx.tooltipEl.dataset.hint = 'false';
   const w = ctx.stage.clientWidth;
   const tw = ctx.tooltipEl.offsetWidth;
   const th = ctx.tooltipEl.offsetHeight;
@@ -518,6 +532,43 @@ function pointAt(cell, at, pinned) {
     if (!pinned && ctx.selectedKey) refreshTooltip();
     else hideTooltip();
   }
+}
+
+/** Area to select when the map is clicked at lon/lat: an exported district, else all of Sarawak, else none. */
+export function areaForClick(lon, lat, geojson, areaIds) {
+  const hit = areaAt(lon, lat, geojson);
+  if (hit && hit !== 'sarawak' && areaIds.has(hit)) return hit;
+  return hit ? 'sarawak' : null;
+}
+
+/** Select the district under a map click (as the area dropdown would). Returns true if the area changed. */
+function selectAreaAt(lon, lat) {
+  const id = areaForClick(lon, lat, ctx.areas, ctx.areaIds);
+  if (!id || id === getState().areaId) return false;
+  ctx.selectedKey = null;
+  hideTooltip();
+  setState({ areaId: id });
+  return true;
+}
+
+/** Hover hint over a district when no square is under the pointer. */
+function hoverArea(lon, lat, at) {
+  const id = areaForClick(lon, lat, ctx.areas, ctx.areaIds);
+  if (!id || id === getState().areaId || ctx.tooltipEl.dataset.pinned === 'true') {
+    if (ctx.tooltipEl.dataset.hint === 'true') hideTooltip();
+    return !!id && id !== getState().areaId;
+  }
+  ctx.tooltipEl.innerHTML = '';
+  const strong = document.createElement('strong');
+  strong.textContent = ctx.areaNames.get(id) || id;
+  const span = document.createElement('span');
+  span.textContent = id === 'sarawak' ? 'Click to see all of Sarawak' : 'Click to zoom in';
+  ctx.tooltipEl.append(strong, span);
+  ctx.tooltipEl.hidden = false;
+  ctx.tooltipEl.dataset.pinned = 'false';
+  ctx.tooltipEl.dataset.hint = 'true';
+  ctx.tooltipEl.style.transform = `translate(${Math.round(at[0] + 14)}px, ${Math.round(at[1] + 14)}px)`;
+  return true;
 }
 
 // ---------- View switching ----------
@@ -782,8 +833,14 @@ function create2D() {
     }
     if (e.pointerType === 'mouse') {
       const c = cellAtScreen(p[0], p[1]);
-      canvas.style.cursor = c ? 'pointer' : 'grab';
-      pointAt(c, p, false);
+      if (c) {
+        canvas.style.cursor = 'pointer';
+        pointAt(c, p, false);
+      } else {
+        const [lon, lat] = unproject(...toWorld(p[0], p[1]));
+        canvas.style.cursor = hoverArea(lon, lat, p) ? 'pointer' : 'grab';
+        if (ctx.tooltipEl.dataset.hint !== 'true') pointAt(null, p, false);
+      }
     }
   });
   const end = (e) => {
@@ -792,7 +849,9 @@ function create2D() {
     if (pointers.size < 2) pinch = null;
     if (wasTap) {
       const p = local(e);
-      pointAt(cellAtScreen(p[0], p[1]), p, true);
+      // A click inside another district selects it (and the map zooms there); otherwise show the square.
+      const [lon, lat] = unproject(...toWorld(p[0], p[1]));
+      if (!selectAreaAt(lon, lat)) pointAt(cellAtScreen(p[0], p[1]), p, true);
     }
     if (!pointers.size) drag = null;
   };
@@ -826,7 +885,6 @@ function create2D() {
     e.preventDefault();
     zoomAt(Math.exp(-e.deltaY * 0.0025), local(e));
   }, { passive: false });
-  canvas.addEventListener('dblclick', (e) => zoomAt(2, local(e)));
 
   canvas.addEventListener('keydown', (e) => {
     const step = 80 / view.scale;
@@ -952,7 +1010,8 @@ async function create3D() {
   };
   const outline = ctx.areas.features.find((f) => f.properties.id === 'sarawak');
   const landShapes = outline ? shapesOf(outline) : ctx.areas.features.flatMap(shapesOf);
-  scene.add(slab(landShapes, LAND_H, C.hazeDeep));
+  const landMesh = slab(landShapes, LAND_H, C.hazeDeep);
+  scene.add(landMesh);
 
   // District edges as lines just above the land.
   const linePts = [];
@@ -1127,10 +1186,9 @@ async function create3D() {
     const b = boundsOf(featuresOfArea(id));
     const cx = (b.x0 + b.x1) / 2;
     const cz = (b.y0 + b.y1) / 2;
-    const size = Math.max(b.x1 - b.x0, (b.y1 - b.y0) * (w / Math.max(h, 1)), 0.3);
-    const dist = Math.min(size * 2.4 + 0.8, 12);
+    const dist = fitDistance(b.x1 - b.x0, b.y1 - b.y0, w / Math.max(h, 1), camera.fov);
     controls.target.set(cx, 0, cz);
-    camera.position.set(cx, dist * 0.8, cz + dist * 0.75);
+    camera.position.set(cx, dist * 0.78, cz + dist * 0.63); // looking down at about 50 degrees
     controls.update();
     render();
   }
@@ -1144,23 +1202,32 @@ async function create3D() {
     ndc.set((at[0] / r.width) * 2 - 1, -(at[1] / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     const hit = columns ? ray.intersectObject(columns, false)[0] : null;
-    return { cell: hit ? (renderedCells[hit.instanceId] && ctx.cellIndex.get(renderedCells[hit.instanceId].key)) || null : null, at };
+    const ground = ray.intersectObjects([landMesh, ...(areaGroup ? areaGroup.children : [])], false)[0];
+    const lonlat = ground ? unproject(ground.point.x, ground.point.z) : null;
+    return { cell: hit ? (renderedCells[hit.instanceId] && ctx.cellIndex.get(renderedCells[hit.instanceId].key)) || null : null, at, lonlat };
   }
   let down = null;
   canvas.addEventListener('pointerdown', (e) => { down = [e.clientX, e.clientY]; });
   canvas.addEventListener('pointerup', (e) => {
     if (down && Math.abs(e.clientX - down[0]) + Math.abs(e.clientY - down[1]) < 5) {
-      const { cell, at } = pick(e);
-      pointAt(cell, at, true);
-      buildColumns();
+      const { cell, at, lonlat } = pick(e);
+      if (!(lonlat && selectAreaAt(...lonlat))) {
+        pointAt(cell, at, true);
+        buildColumns();
+      }
     }
     down = null;
   });
   canvas.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse' || e.buttons) return;
-    const { cell, at } = pick(e);
-    canvas.style.cursor = cell ? 'pointer' : 'grab';
-    pointAt(cell, at, false);
+    const { cell, at, lonlat } = pick(e);
+    if (cell) {
+      canvas.style.cursor = 'pointer';
+      pointAt(cell, at, false);
+    } else {
+      canvas.style.cursor = lonlat && hoverArea(...lonlat, at) ? 'pointer' : 'grab';
+      if (ctx.tooltipEl.dataset.hint !== 'true') pointAt(null, at, false);
+    }
   });
   controls.addEventListener('start', () => { if (ctx.tooltipEl.dataset.pinned !== 'true') hideTooltip(); });
   controls.addEventListener('end', () => refreshTooltip());

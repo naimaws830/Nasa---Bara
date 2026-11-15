@@ -412,3 +412,21 @@ test('meaning of the satellite check uses the real worst year and the real chang
   assert.match(text, /fewer hotspots a year than 2001 to 2010/);
   assert.doesNotMatch(text, BANNED);
 });
+
+test('one or two hotspots in a month that is usually empty count as normal', () => {
+  assert.equal(S.levelOf(1, 0).key, 'normal');
+  assert.equal(S.levelOf(2, 0).key, 'normal');
+  assert.equal(S.levelOf(5, 0).key, 'higher');
+  assert.equal(S.levelOf(0, 0).key, 'normal');
+});
+
+test('navbar highlights the last section whose top passed the bar, including short ones', async () => {
+  const { activeIndex } = await import('../site/js/nav.js');
+  // Area & dates just below the bar, the tall map further down: Area & dates is active.
+  assert.equal(activeIndex([60, 300, 1500, 2600], 50), 0);
+  // Scrolled into the map.
+  assert.equal(activeIndex([-260, -20, 1200, 2300], 50), 1);
+  // At the very bottom the last section wins even if its top is still low.
+  assert.equal(activeIndex([-3000, -2700, -900, 400], 50, true), 3);
+  assert.equal(activeIndex([], 50), -1);
+});

@@ -113,3 +113,11 @@ test('projection round-trips and colour bins are ordered', () => {
   assert.equal(map.binLabel(1, bins), '2 to 3');
   assert.equal(map.binLabel(bins.length - 1, bins), '32+');
 });
+
+test('clicking the map picks the district, else all of Sarawak, else nothing', () => {
+  const ids = new Set(meta.areas.map((a) => a.id));
+  assert.equal(map.areaForClick(111.3205, 2.4281, areas, ids), 'dist:daro');
+  assert.equal(map.areaForClick(112.1588, 2.7306, areas, ids), 'dist:mukah');
+  assert.equal(map.areaForClick(110.35, 1.55, areas, ids), 'sarawak'); // Kuching: Sarawak, not a listed district
+  assert.equal(map.areaForClick(111.0, 3.5, areas, ids), null); // South China Sea
+});

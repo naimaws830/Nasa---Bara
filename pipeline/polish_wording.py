@@ -1,6 +1,7 @@
 """Offline wording help: ask Kimi (Moonshot AI) for plainer versions of Bara's sentence patterns.
 
     python pipeline/polish_wording.py            # needs KIMI_API_KEY in pipeline/.env
+    python pipeline/polish_wording.py --only game.   # only the Commander mode sentences
 
 Reads   pipeline/wording_catalog.json   every reader-facing sentence pattern, with {placeholders}
 Writes  docs/wording_suggestions.md     original vs suggestion, with automatic checks, for a person to review
@@ -102,8 +103,12 @@ def main():
     key = os.environ.get("KIMI_API_KEY", "").strip()
     if not key:
         raise PipelineError("KIMI_API_KEY is not set in pipeline/.env")
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--only", help="only ids starting with this, e.g. game.")
+    args = ap.parse_args()
     catalog = json.loads((PIPELINE / "wording_catalog.json").read_text(encoding="utf-8"))
-    items = catalog["items"]
+    items = [i for i in catalog["items"] if not args.only or i["id"].startswith(args.only)]
     print(f"Asking {MODEL} about {len(items)} sentence patterns...")
     answers = ask_kimi(key, items, catalog["audience"])
 

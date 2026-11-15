@@ -196,7 +196,8 @@ export async function mount(root) {
     else void play();
   });
   slider.addEventListener('input', () => {
-    stop('Replay paused after changing the month.');
+    stop(); // moving the slider pauses the replay quietly
+    status.textContent = '';
     setState({ selectedMonth: monthAt(Number(slider.value)) });
   });
   speed.addEventListener('change', () => {
@@ -222,7 +223,10 @@ export async function mount(root) {
     if (!mounted || ownUpdate) return;
     if (changed.includes('selectedMonth')) {
       showMonth(state.selectedMonth);
-      if (timeline || preparing || state.playing) stop('Replay paused after changing the month.');
+      if (timeline || preparing || state.playing) {
+        stop(); // a month picked elsewhere pauses the replay quietly
+        status.textContent = '';
+      }
     }
     if (changed.some(k => ['areaId', 'sensorView', 'startMonth', 'endMonth'].includes(k))) {
       if (timeline || preparing || state.playing) stop('Replay paused after changing another control.');
