@@ -1,0 +1,58 @@
+# Refreshes site/data/* from NASA sources on a schedule (Owner A pipeline),
+# then commits the result so Netlify (or GitHub Pages) redeploys automatically.
+#
+# One-time setup:
+#   1. Repo Settings > Secrets and variables > Actions > New repository secret:
+#        FIRMS_MAP_KEY = <your free key from https://firms.modaps.eosdis.nasa.gov/api/map_key/>
+#   2. Settings > Actions > General > Workflow permissions: "Read and write permissions"
+#      (needed so this workflow can push the refreshed data back to main).
+name: Refresh pipeline data
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # daily at 03:00 UTC; adjust to taste
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pipeline dependencies
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Run pipeline (production: verified districts only)
+        env:
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+        run: |
+          python pipeline/acquire.py
+          python pipeline/clean.py
+          python pipeline/aggregate.py
+          python pipeline/harmonize.py
+          python pipeline/forecast.py
+          python pipeline/export.py
+          python pipeline/validate.py --production
+
+      - name: Record last successful run
+        run: date -u +"%Y-%m-%dT%H:%M:%SZ" > site/data/last_run.txt
+
+      - name: Commit refreshed data if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add site/data
+          git diff --cached --quiet && echo "No data changes" && exit 0
+          git commit -m "chore: refresh pipeline data [skip ci]"
+          git push
