@@ -33,6 +33,13 @@ jobs:
       - name: Install pipeline dependencies
         run: pip install -r pipeline/requirements.txt
 
+      - name: Restore raw data cache (avoids re-downloading NASA history every run)
+        uses: actions/cache@v4
+        with:
+          path: pipeline/raw
+          key: pipeline-raw-${{ github.run_id }}
+          restore-keys: pipeline-raw-
+
       - name: "Run pipeline (production: verified districts only)"
         env:
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
