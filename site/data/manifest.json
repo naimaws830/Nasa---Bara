@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T10:48:06Z",
+  "generatedAt": "2026-11-22T10:55:38Z",
   "mode": "real",
   "files": [
     {
@@ -10,8 +10,8 @@
     },
     {
       "path": "calendar/dist_bintulu.json",
-      "bytes": 13213,
-      "sha256": "d09205fea79707022bd4bb8fd9b8b2283419f3d0ed2f3678e4f6acef4d534547",
+      "bytes": 13210,
+      "sha256": "f8e516c60f54834677616c7b8caca2581b4b783f372fd633e64e66d17eddf0bd",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"
@@ -83,7 +83,7 @@
     {
       "path": "calendar/dist_pakan.json",
       "bytes": 12675,
-      "sha256": "2ba94139f3505be5939a7c77b6bf249cca23581c33c8b3cbada87f498a1ff328",
+      "sha256": "f3794c018a936c54f1b579ed7eeacb1e2096ed42d46d8d143bc04dc6c7dba96c",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"
@@ -137,7 +137,7 @@
     {
       "path": "calendar/dist_tatau.json",
       "bytes": 12971,
-      "sha256": "a3c028dd0ddc314b6ab6fd75ed3d9e5edd2f440cd31db8507727eb91232c8cf6",
+      "sha256": "595d06f052aaed4eae1a2d20d9c6908091f42b8fe616add1dcd99df5b58d51af",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"
@@ -146,7 +146,7 @@
     {
       "path": "calendar/div_bintulu.json",
       "bytes": 13558,
-      "sha256": "ee79cb60f0ac79c1240e14ca628c8a34bb3b22aaca33a9b3a4c1f02a900ac1fe",
+      "sha256": "1d59c7b7a0fa68b26dded2846763b3f6e377a267c4a35371511d0bf2dd9c6544",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"
@@ -163,8 +163,8 @@
     },
     {
       "path": "calendar/div_sarikei.json",
-      "bytes": 13011,
-      "sha256": "5a4a34a2d4c8b14a273c08f56494d51ccf01c7384c2ad30e1b1d5c8f23cab144",
+      "bytes": 13010,
+      "sha256": "4fa48c349fe3913bd04f693ce427e3731d4c6752699d47c0c5d269171311e934",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"
@@ -181,8 +181,8 @@
     },
     {
       "path": "calendar/sarawak.json",
-      "bytes": 14514,
-      "sha256": "564b70ad8dfa5b7486e8149f5fe3ae09434035792fd1dc5c6fbdf94941812711",
+      "bytes": 14512,
+      "sha256": "9f3096fcaa8a50ddeda050b5eb3dbb2240bca3a6d2dc11ad3a2a9a8f369ce315",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"
@@ -190,8 +190,8 @@
     },
     {
       "path": "forecast.json",
-      "bytes": 6517,
-      "sha256": "e03e83cb3c878f1c540155073d3b3671dd3eaa3bbe7510ab61bb216ebe57fdaf",
+      "bytes": 6516,
+      "sha256": "d8c035e2d35c99e5a98391756ae68154e57310c550c4eedeb7bba92853d5e99a",
       "coverage": null
     },
     {
@@ -427,8 +427,8 @@
     },
     {
       "path": "map/2026.json",
-      "bytes": 126886,
-      "sha256": "50c32e69829afe1e942256140921f7de2204e18f3620d5e60656716600bae170",
+      "bytes": 126744,
+      "sha256": "d067358892204350089aed1ed6ff14f7cd0d8a0c334755e94acb0c62933f74d2",
       "coverage": {
         "start": "2026-01",
         "end": "2026-10"
@@ -436,8 +436,8 @@
     },
     {
       "path": "meta.json",
-      "bytes": 3953,
-      "sha256": "192ceda6dd513dbd20fe48803f6d4450df756a148c96e3312942e2038c1f8b8e",
+      "bytes": 3959,
+      "sha256": "8249f34cc10bd1748d19829a54b90608d1b5789c4798dead642aa8da02e0035f",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"
