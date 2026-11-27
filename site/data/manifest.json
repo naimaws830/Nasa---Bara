@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-26T12:04:10Z",
+  "generatedAt": "2026-11-27T11:55:09Z",
   "mode": "real",
   "files": [
     {
@@ -191,7 +191,7 @@
     {
       "path": "forecast.json",
       "bytes": 6509,
-      "sha256": "567a4882e006e6b5360f0d855b2bb7d100f549daee407b01ba939b030954e548",
+      "sha256": "ab29005371bf0c7a293f3adf444b304ac8cb532d71ee883d51abd8c332d9424d",
       "coverage": null
     },
     {
@@ -437,7 +437,7 @@
     {
       "path": "meta.json",
       "bytes": 3959,
-      "sha256": "b210d0a8d6afd9b81e500cceaab7301bed81d86641988973aa938197bddaefd9",
+      "sha256": "c3316a0a000730b26c93350b469e7e3d06ac946cf108378ab3ca02a3846f0f86",
       "coverage": {
         "start": "2001-01",
         "end": "2026-10"
